@@ -1,0 +1,27 @@
+{
+  "project": "NovaDL",
+  "goal": "Desktop UI wrapper for yt-dlp",
+  "stack": {
+    "desktop": "Electron",
+    "renderer": "Vite + React + TypeScript",
+    "backend": "Electron main process"
+  },
+  "mvp": [
+    "URL input",
+    "Download folder picker",
+    "Video/audio mode",
+    "Quality presets",
+    "Download queue",
+    "Progress, speed, ETA, cancel",
+    "Local settings",
+    "Bundled binaries"
+  ],
+  "deferred": [
+    "yt-dlp update flow",
+    "Cookies",
+    "Subtitles",
+    "Playlist ranges",
+    "Advanced format selector",
+    "Download history"
+  ]
+}
