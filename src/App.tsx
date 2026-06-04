@@ -84,7 +84,7 @@ function App() {
               speed: event.speed ?? item.speed,
               eta: event.eta ?? item.eta,
               logs: event.line ? appendLog(item.logs, event.line) : item.logs,
-              message: "Downloading"
+              message: event.message ?? "Downloading"
             };
           }
 
@@ -371,7 +371,11 @@ function App() {
                       <span className={`status-pill ${item.status}`}>{statusLabels[item.status]}</span>
                     </div>
                     <p>
-                      {item.mode === "audio" ? "Audio MP3" : item.mode === "video-only" ? `${qualityLabels[item.quality]} video (no audio)` : `${qualityLabels[item.quality]} video`} to {item.downloadPath}
+                      {item.mode === "audio"
+                        ? "MP3 audio"
+                        : item.mode === "video-only"
+                          ? `${qualityLabels[item.quality]} video (no audio)`
+                          : `${qualityLabels[item.quality]} video`} to {item.downloadPath}
                     </p>
                   </div>
                 </div>
