@@ -19,43 +19,43 @@ export const Logo: React.FC<LogoProps> = ({ size = 32, className = "", showWordm
       >
         <defs>
           <linearGradient id="logoBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#0e131f" />
-            <stop offset="50%" stop-color="#0a0d16" />
-            <stop offset="100%" stop-color="#05070b" />
+            <stop offset="0%" stopColor="#0e131f" />
+            <stop offset="50%" stopColor="#0a0d16" />
+            <stop offset="100%" stopColor="#05070b" />
           </linearGradient>
 
           <linearGradient id="logoBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6" />
-            <stop offset="50%" stop-color="#6366f1" stop-opacity="0.3" />
-            <stop offset="100%" stop-color="#a855f7" stop-opacity="0.6" />
+            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.6" />
+            <stop offset="50%" stopColor="#6366f1" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.6" />
           </linearGradient>
 
           <linearGradient id="logoNovaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#38bdf8" />
-            <stop offset="45%" stop-color="#6366f1" />
-            <stop offset="100%" stop-color="#ec4899" />
+            <stop offset="0%" stopColor="#38bdf8" />
+            <stop offset="45%" stopColor="#6366f1" />
+            <stop offset="100%" stopColor="#ec4899" />
           </linearGradient>
 
           <radialGradient id="logoCoreGlow" cx="50%" cy="38%" r="45%">
-            <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.45" />
-            <stop offset="50%" stop-color="#818cf8" stop-opacity="0.15" />
-            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+            <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.45" />
+            <stop offset="50%" stopColor="#818cf8" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#000000" stopOpacity="0" />
           </radialGradient>
         </defs>
 
-        <rect x="10" y="10" width="236" height="236" rx="52" fill="url(#logoBgGrad)" stroke="url(#logoBorderGrad)" stroke-width="3" />
+        <rect x="10" y="10" width="236" height="236" rx="52" fill="url(#logoBgGrad)" stroke="url(#logoBorderGrad)" strokeWidth="3" />
         <circle cx="128" cy="115" r="85" fill="url(#logoCoreGlow)" />
 
-        <!-- Frequency Stem Arcs -->
-        <path d="M 66 84 C 92 84 102 72 128 72 C 154 72 164 84 190 84" stroke="#a78bfa" stroke-width="5" stroke-linecap="round" opacity="0.9" />
-        <path d="M 52 108 C 84 108 98 94 128 94 C 158 94 172 108 204 108" stroke="#f87171" stroke-width="5.5" stroke-linecap="round" opacity="0.95" />
-        <path d="M 60 132 C 88 132 104 118 128 118 C 152 118 168 132 196 132" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" opacity="0.95" />
-        <path d="M 74 156 C 96 156 110 144 128 144 C 146 144 160 156 182 156" stroke="#34d399" stroke-width="5" stroke-linecap="round" opacity="0.9" />
+        {/* Frequency Stem Arcs */}
+        <path d="M 66 84 C 92 84 102 72 128 72 C 154 72 164 84 190 84" stroke="#a78bfa" strokeWidth="5" strokeLinecap="round" opacity="0.9" />
+        <path d="M 52 108 C 84 108 98 94 128 94 C 158 94 172 108 204 108" stroke="#f87171" strokeWidth="5.5" strokeLinecap="round" opacity="0.95" />
+        <path d="M 60 132 C 88 132 104 118 128 118 C 152 118 168 132 196 132" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" opacity="0.95" />
+        <path d="M 74 156 C 96 156 110 144 128 144 C 146 144 160 156 182 156" stroke="#34d399" strokeWidth="5" strokeLinecap="round" opacity="0.9" />
 
-        <!-- Download Arrow Body -->
-        <path d="M 128 206 L 82 142 H 108 V 64 H 148 V 142 H 174 Z" fill="url(#logoNovaGrad)" stroke="#ffffff" stroke-opacity="0.3" stroke-width="2" stroke-linejoin="round" />
+        {/* Download Arrow Body */}
+        <path d="M 128 206 L 82 142 H 108 V 64 H 148 V 142 H 174 Z" fill="url(#logoNovaGrad)" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="2" strokeLinejoin="round" />
         
-        <!-- Nova Star Core -->
+        {/* Nova Star Core */}
         <path d="M 128 88 Q 128 114 146 114 Q 128 114 128 140 Q 128 114 110 114 Q 128 114 128 88 Z" fill="#ffffff" />
         <circle cx="128" cy="114" r="4" fill="#ffffff" />
       </svg>
