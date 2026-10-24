@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e131f" />
+      <stop offset="50%" stop-color="#0a0d16" />
+      <stop offset="100%" stop-color="#05070b" />
+    </linearGradient>
+
+    <!-- Border Gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6" />
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.6" />
+    </linearGradient>
+
+    <!-- Primary Nova Download Gradient -->
+    <linearGradient id="novaDownloadGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="45%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+
+    <!-- Radial Core Glow -->
+    <radialGradient id="coreGlow" cx="50%" cy="38%" r="45%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.45" />
+      <stop offset="50%" stop-color="#818cf8" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Drop Shadow -->
+    <filter id="novaShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#4f46e5" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- App Icon Squircle Background -->
+  <rect x="8" y="8" width="240" height="240" rx="54" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="2.5" />
+  
+  <!-- Subtle Ambient Glow Behind Mark -->
+  <circle cx="128" cy="115" r="85" fill="url(#coreGlow)" />
+
+  <!-- Outer Sound Wave Frequency Ribs -->
+  <!-- Lane 1: Vocals (Violet) -->
+  <path d="M 66 84 C 92 84 102 72 128 72 C 154 72 164 84 190 84" stroke="#a78bfa" stroke-width="4" stroke-linecap="round" opacity="0.85" />
+  
+  <!-- Lane 2: Drums (Coral) -->
+  <path d="M 52 108 C 84 108 98 94 128 94 C 158 94 172 108 204 108" stroke="#f87171" stroke-width="4.5" stroke-linecap="round" opacity="0.9" />
+
+  <!-- Lane 3: Bass (Sky) -->
+  <path d="M 60 132 C 88 132 104 118 128 118 C 152 118 168 132 196 132" stroke="#38bdf8" stroke-width="5" stroke-linecap="round" opacity="0.95" />
+
+  <!-- Lane 4: Other/Melody (Emerald) -->
+  <path d="M 74 156 C 96 156 110 144 128 144 C 146 144 160 156 182 156" stroke="#34d399" stroke-width="4" stroke-linecap="round" opacity="0.85" />
+
+  <!-- Center Arrow Body (Fast Velocity Download Vector with Nova Star Head) -->
+  <g filter="url(#novaShadow)">
+    <path d="M 128 206 L 82 142 H 108 V 64 H 148 V 142 H 174 Z" 
+          fill="url(#novaDownloadGrad)" 
+          stroke="#ffffff" 
+          stroke-opacity="0.25" 
+          stroke-width="1.5"
+          stroke-linejoin="round" />
+    
+    <!-- Central Nova Core Star -->
+    <path d="M 128 88 Q 128 114 146 114 Q 128 114 128 140 Q 128 114 110 114 Q 128 114 128 88 Z" 
+          fill="#ffffff" />
+          
+    <circle cx="128" cy="114" r="3.5" fill="#ffffff" />
+  </g>
+
+  <!-- Accent Stem Frequency Dots -->
+  <circle cx="100" cy="184" r="3" fill="#a78bfa" opacity="0.9" />
+  <circle cx="114" cy="198" r="3" fill="#f87171" opacity="0.9" />
+  <circle cx="142" cy="198" r="3" fill="#38bdf8" opacity="0.9" />
+  <circle cx="156" cy="184" r="3" fill="#34d399" opacity="0.9" />
+</svg>

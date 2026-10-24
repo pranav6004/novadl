@@ -1,8 +1,19 @@
 /// <reference types="vite/client" />
 
-type DownloadMode = "video" | "video-only" | "audio";
+type DownloadMode = "video" | "video-only" | "audio" | "stems";
 type DownloadQuality = "original" | "1080" | "720";
 type DownloadStatus = "queued" | "running" | "complete" | "error" | "cancelled";
+type StemId = "vocals" | "drums" | "bass" | "other";
+
+interface StemProject {
+  id: string;
+  title: string;
+  folder: string;
+  createdAt: number;
+  duration: number;
+  stems: Record<StemId, string>;
+  waveforms?: Record<StemId, number[]>;
+}
 
 interface AppSettings {
   downloadPath: string;
@@ -12,6 +23,7 @@ interface AppSettings {
 }
 
 interface DownloadRequest extends AppSettings {
+  id?: string;
   url: string;
 }
 
@@ -25,6 +37,7 @@ interface DownloadEvent {
   line?: string;
   level?: "error";
   message?: string;
+  stemProject?: StemProject;
 }
 
 interface Window {
@@ -35,7 +48,14 @@ interface Window {
     startDownload: (request: DownloadRequest) => Promise<{ id: string }>;
     cancelDownload: (id: string) => Promise<boolean>;
     removeDownload: (id: string) => Promise<boolean>;
-    openFolder: (folderPath: string) => Promise<void>;
+    openFolder: () => Promise<void>;
+    listStemProjects: () => Promise<StemProject[]>;
+    readStemAudio: (filePath: string) => Promise<string | null>;
+    chooseLocalFile: () => Promise<string | null>;
+    processLocalFile: (filePath: string) => Promise<StemProject>;
+    exportStems: (options: { projectFolder: string; stemIds?: StemId[]; format?: "wav" | "mp3" }) => Promise<{ success?: boolean; exportDir?: string; cancelled?: boolean }>;
+    openStemFolder: (folderPath: string) => Promise<boolean>;
+    deleteStemProject: (folderPath: string) => Promise<boolean>;
     onDownloadEvent: (callback: (event: DownloadEvent) => void) => () => void;
   };
 }

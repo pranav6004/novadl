@@ -7,7 +7,14 @@ contextBridge.exposeInMainWorld("ytDlpUi", {
   startDownload: (request) => ipcRenderer.invoke("downloads:start", request),
   cancelDownload: (id) => ipcRenderer.invoke("downloads:cancel", id),
   removeDownload: (id) => ipcRenderer.invoke("downloads:remove", id),
-  openFolder: (folderPath) => ipcRenderer.invoke("folder:open", folderPath),
+  openFolder: () => ipcRenderer.invoke("folder:open"),
+  listStemProjects: () => ipcRenderer.invoke("stems:list"),
+  readStemAudio: (filePath) => ipcRenderer.invoke("stems:read-audio", filePath),
+  chooseLocalFile: () => ipcRenderer.invoke("stems:choose-local-file"),
+  processLocalFile: (filePath) => ipcRenderer.invoke("stems:process-local", filePath),
+  exportStems: (options) => ipcRenderer.invoke("stems:export", options),
+  openStemFolder: (folderPath) => ipcRenderer.invoke("stems:open-folder", folderPath),
+  deleteStemProject: (folderPath) => ipcRenderer.invoke("stems:delete", folderPath),
   onDownloadEvent: (callback) => {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on("download:event", listener);

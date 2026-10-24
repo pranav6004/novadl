@@ -25,15 +25,23 @@ async function waitForServer() {
   throw new Error(`Vite did not respond at ${url}`);
 }
 
+function killProcessTree(proc) {
+  if (!proc || proc.killed || !proc.pid) return;
+  if (process.platform === "win32") {
+    try {
+      spawn("taskkill", ["/pid", String(proc.pid), "/t", "/f"], { windowsHide: true, stdio: "ignore" })
+        .on("error", () => {});
+    } catch {}
+  } else {
+    try {
+      proc.kill("SIGTERM");
+    } catch {}
+  }
+}
+
 function shutdown(code = 0) {
-  if (electron && !electron.killed) {
-    electron.kill();
-  }
-
-  if (!vite.killed) {
-    vite.kill();
-  }
-
+  killProcessTree(electron);
+  killProcessTree(vite);
   process.exit(code);
 }
 
