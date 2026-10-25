@@ -60,7 +60,7 @@ export function App() {
   const [activeStemProject, setActiveStemProject] = useState<StemProject | null>(null);
 
   // Auto-updater state
-  const [appVersion, setAppVersion] = useState<string>("0.2.1");
+  const [appVersion, setAppVersion] = useState<string>("0.2.2");
   const [updateStatus, setUpdateStatus] = useState<UpdateStatusEvent>({ status: "up-to-date" });
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
