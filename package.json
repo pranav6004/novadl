@@ -1,6 +1,6 @@
 {
   "name": "novadl",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "A friendly desktop UI for yt-dlp.",
   "author": "NovaDL",
@@ -35,6 +35,12 @@
     "win": {
       "icon": "public/icon.png",
       "target": ["nsis", "portable"]
+    },
+    "nsis": {
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
     }
   },
   "dependencies": {
