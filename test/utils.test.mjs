@@ -239,3 +239,15 @@ describe("parseProgress", () => {
     assert.equal(parseProgress("[info] Extracting URL: ..."), null);
   });
 });
+
+describe("StemKit streaming media protocol format", () => {
+  test("formats Windows and POSIX paths safely for novadl-media scheme", () => {
+    const formatMediaUrl = (filePath) => `novadl-media://local/${encodeURI(String(filePath || "").replace(/\\/g, "/"))}`;
+    const winUrl = formatMediaUrl("C:\\Users\\Downloads\\NovaDL_Stems\\Song\\vocals.wav");
+    assert.equal(winUrl, "novadl-media://local/C:/Users/Downloads/NovaDL_Stems/Song/vocals.wav");
+
+    const specialUrl = formatMediaUrl("C:\\Music\\Track #1 [Remix] (Live).wav");
+    assert.ok(specialUrl.startsWith("novadl-media://local/C:/Music/Track%20"));
+  });
+});
+

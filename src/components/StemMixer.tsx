@@ -74,7 +74,7 @@ export const StemMixer: React.FC<StemMixerProps> = ({
       for (const id of ["vocals", "drums", "bass", "other"] as StemId[]) {
         next[id] = {
           ...next[id],
-          waveform: project.waveforms?.[id] || Array.from({ length: 64 }, (_, i) => 0.15 + 0.5 * Math.sin((i / 64) * Math.PI))
+          waveform: project?.waveforms?.[id] || Array.from({ length: 64 }, (_, i) => 0.15 + 0.5 * Math.sin((i / 64) * Math.PI))
         };
       }
       return next;
@@ -86,14 +86,16 @@ export const StemMixer: React.FC<StemMixerProps> = ({
 
       for (const stemId of stemIds) {
         if (!isMounted) return;
-        const stemFile = project.stems[stemId];
+        const stemFile = project?.stems?.[stemId];
         if (!stemFile) continue;
 
         try {
           const filePath = `${project.folder}/${stemFile}`;
-          const base64Audio = await window.ytDlpUi.readStemAudio(filePath);
-          if (base64Audio && isMounted) {
-            await engine.loadStemBuffer(stemId, base64Audio);
+          const mediaUrl = window.ytDlpUi?.getStemMediaUrl
+            ? window.ytDlpUi.getStemMediaUrl(filePath)
+            : `novadl-media://local/${encodeURI(filePath.replace(/\\/g, "/"))}`;
+          if (isMounted) {
+            await engine.loadStem(stemId, mediaUrl);
           }
         } catch (err) {
           console.error(`Error loading stem ${stemId}:`, err);
@@ -253,11 +255,12 @@ export const StemMixer: React.FC<StemMixerProps> = ({
         <div className="stem-empty-icon">
           <Sparkles size={28} aria-hidden="true" />
         </div>
-        <h3>Stem Studio — Mini DAW</h3>
+        <h3>Stem Studio: Mini DAW</h3>
         <p>Isolate and mix musical stems (Vocals, Drums, Bass, Instruments) locally with zero latency.</p>
         <div className="stem-empty-actions" style={{ marginTop: "8px" }}>
           <button
             className="primary-btn"
+            style={{ whiteSpace: "nowrap" }}
             onClick={async () => {
               const file = await window.ytDlpUi.chooseLocalFile();
               if (file) {
@@ -266,7 +269,7 @@ export const StemMixer: React.FC<StemMixerProps> = ({
             }}
           >
             <FolderOpen size={15} aria-hidden="true" />
-            <span>Load Local Audio or Video</span>
+            <span>Load Audio or Video</span>
           </button>
         </div>
         {allProjects.length > 0 && (
@@ -380,7 +383,7 @@ export const StemMixer: React.FC<StemMixerProps> = ({
           className={`preset-pill ${activePreset === "rhythm" ? "active" : ""}`}
           onClick={() => applyPreset("rhythm")}
         >
-          Rhythm Section (Drums + Bass)
+          Rhythm (Drums & Bass)
         </button>
         <button
           className={`preset-pill ${activePreset === "instrumental" ? "active" : ""}`}
@@ -500,7 +503,7 @@ export const StemMixer: React.FC<StemMixerProps> = ({
                 <div className="stem-playhead" style={{ left: `${playheadPercent}%` }} />
 
                 <div className="stem-bars-row">
-                  {track.waveform.map((peak, idx) => {
+                  {(track?.waveform || []).map((peak, idx) => {
                     const isPassed = duration > 0 && idx / track.waveform.length <= currentTime / duration;
                     const barHeight = Math.max(10, Math.round(peak * 48));
 

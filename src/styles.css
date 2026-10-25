@@ -1,11 +1,7 @@
-/* ==========================================================================
-   NovaDL Design System — Linear Studio Precision
-   Anchored to: Linear.app & Raycast Production Standards (awesome-design-md)
-   Anti-Slop Craft: Zero decorative gradients/glows, 1px hairlines, tabular type
-   ========================================================================== */
+/* Hallmark: v2.0.0 · theme: obsidian · genre: atmospheric · scope: app · critique: precision studio hardware rack without AI slop */
 
 :root {
-  /* Color Palette — Linear Dark Canvas Ladder */
+  /* Color Palette: Obsidian Dark Canvas Ladder */
   --canvas: #07080a;
   --surface-1: #0f1011;
   --surface-2: #141516;
@@ -17,33 +13,52 @@
   --hairline-subtle: #191a1d;
   --hairline: #23252a;
   --hairline-strong: #34343a;
-  --hairline-focus: #5e6ad2;
+  --hairline-focus: #4f5dc9;
 
   /* Typography Colors */
   --text-ink: #f7f8f8;
   --text-muted: #d0d6e0;
   --text-subtle: #8a8f98;
-  --text-tertiary: #62666d;
+  --text-tertiary: #71767f;
   --text-inverse: #07080a;
 
-  /* Primary Accent — Linear Lavender-Blue */
-  --accent-primary: #5e6ad2;
-  --accent-primary-hover: #6f7be2;
-  --accent-primary-active: #505cb8;
-  --accent-subtle: rgba(94, 106, 210, 0.12);
-  --accent-border: rgba(94, 106, 210, 0.35);
+  /* Contrast-Tuned Solid Values */
+  --paper-pure: #f7f9fa;
+  --paper-strong: #f1f5f9;
+  --ink-pure: #090a0f;
+  --ink-dark: #07080a;
 
-  /* Stem Data Hues (Reserved strictly for audio tracks and live progress) */
+  /* Primary Accent: Studio Indigo (Calibrated for >4.5:1 WCAG AA contrast) */
+  --accent-primary: #4f5dc9;
+  --accent-primary-hover: #5d6adb;
+  --accent-primary-active: #4350b5;
+  --accent-text: #7b88f3;
+  --accent-subtle: rgba(79, 93, 201, 0.12);
+  --accent-border: rgba(79, 93, 201, 0.35);
+
+  /* Stem Data Hues */
   --stem-vocals: #a78bfa;
   --stem-drums: #f87171;
   --stem-bass: #38bdf8;
   --stem-other: #34d399;
+
+  /* State and Action Tokens */
+  --hover-subtle: rgba(255, 255, 255, 0.04);
+  --danger-fill: rgba(239, 68, 68, 0.12);
+  --danger-text: #fca5a5;
+  --danger-border: rgba(239, 68, 68, 0.3);
+  --stems-fill: rgba(167, 139, 250, 0.12);
+  --stems-border: rgba(167, 139, 250, 0.35);
+  --stems-badge-fill: rgba(167, 139, 250, 0.1);
+  --stems-badge-border: rgba(167, 139, 250, 0.25);
 
   /* Semantic Alerts */
   --semantic-danger: #ef4444;
   --semantic-danger-hover: #dc2626;
   --semantic-warning: #f59e0b;
   --semantic-success: #10b981;
+  --emerald-hover: #059669;
+  --emerald-contrast-text: #022013;
 
   /* Radii */
   --radius-xs: 4px;
@@ -52,7 +67,7 @@
   --radius-lg: 12px;
   --radius-pill: 9999px;
 
-  /* Subtle Crisp Depth (No blurred heavy colored halos) */
+  /* Subtle Crisp Depth */
   --shadow-low: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
@@ -75,6 +90,7 @@ html {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--canvas);
   color: var(--text-ink);
+  overflow-x: clip;
 }
 
 body {
@@ -82,7 +98,7 @@ body {
   min-height: 100vh;
   background: var(--canvas);
   color: var(--text-ink);
-  overflow-x: hidden;
+  overflow-x: clip;
   user-select: none;
 }
 
@@ -97,9 +113,10 @@ button {
   cursor: pointer;
   border: none;
   background: none;
+  white-space: nowrap;
 }
 
-/* Accessibility: Universal Focus Ring (Web Interface Guidelines) */
+/* Accessibility: Universal Focus Ring */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
@@ -108,10 +125,10 @@ select:focus-visible,
   outline-offset: 2px;
 }
 
-/* Custom Minimalist Studio Scrollbars */
+/* Studio Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -120,7 +137,7 @@ select:focus-visible,
 
 ::-webkit-scrollbar-thumb {
   background: var(--hairline-strong);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -140,7 +157,7 @@ select:focus-visible,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 24px;
+  padding: 12px 24px;
   background: var(--surface-1);
   border-bottom: 1px solid var(--hairline);
   position: sticky;
@@ -154,13 +171,13 @@ select:focus-visible,
   gap: 24px;
 }
 
-/* Tab Navigation (Linear Style Segmented Strip) */
+/* Tab Navigation */
 .nav-tabs {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   background: var(--surface-inset);
-  padding: 3px;
+  padding: 4px;
   border-radius: var(--radius-md);
   border: 1px solid var(--hairline);
 }
@@ -168,8 +185,8 @@ select:focus-visible,
 .nav-tab {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 6px 14px;
+  gap: 8px;
+  padding: 8px 16px;
   border-radius: var(--radius-sm);
   color: var(--text-subtle);
   font-size: 13px;
@@ -180,7 +197,7 @@ select:focus-visible,
 
 .nav-tab:hover {
   color: var(--text-ink);
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: var(--hover-subtle);
 }
 
 .nav-tab.active {
@@ -193,26 +210,26 @@ select:focus-visible,
 .header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .badge-active-tasks {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--accent-primary);
   background: var(--accent-subtle);
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--accent-border);
 }
 
 .pulse-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--accent-primary);
 }
@@ -220,13 +237,13 @@ select:focus-visible,
 .badge-update-downloading {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 12px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: var(--accent-primary);
   background: var(--accent-subtle);
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--accent-border);
 }
@@ -234,22 +251,22 @@ select:focus-visible,
 .btn-update-restart {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 12px;
-  font-weight: 600;
-  color: #ffffff;
+  font-weight: 700;
+  color: var(--emerald-contrast-text);
   background: var(--semantic-success);
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   transition: background-color 0.12s ease;
 }
 
 .btn-update-restart:hover {
-  background: #059669;
+  background: var(--emerald-hover);
 }
 
-/* Button System (Raycast / Linear Precision) */
+/* Button System */
 .primary-btn {
   display: inline-flex;
   align-items: center;
@@ -258,11 +275,12 @@ select:focus-visible,
   padding: 8px 16px;
   border-radius: var(--radius-sm);
   background: var(--accent-primary);
-  color: #ffffff;
+  color: var(--paper-strong);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
   border: 1px solid transparent;
+  white-space: nowrap;
   transition: background-color 0.12s ease, transform 0.1s ease;
 }
 
@@ -285,7 +303,7 @@ select:focus-visible,
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 7px 14px;
+  padding: 8px 16px;
   border-radius: var(--radius-sm);
   background: var(--surface-2);
   border: 1px solid var(--hairline);
@@ -293,6 +311,7 @@ select:focus-visible,
   font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
+  white-space: nowrap;
   transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 
@@ -307,13 +326,13 @@ select:focus-visible,
 }
 
 .secondary-btn.danger-hover:hover {
-  background: rgba(239, 68, 68, 0.12);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.3);
+  background: var(--danger-fill);
+  color: var(--danger-text);
+  border-color: var(--danger-border);
 }
 
 .icon-btn {
-  padding: 7px;
+  padding: 8px;
   min-width: 32px;
   height: 32px;
 }
@@ -327,9 +346,7 @@ select:focus-visible,
   margin: 0 auto;
 }
 
-/* ==========================================================================
-   DOWNLOADER VIEW — Monolithic Ingestion Deck
-   ========================================================================== */
+/* Downloader View */
 .downloader-view {
   display: flex;
   flex-direction: column;
@@ -340,11 +357,11 @@ select:focus-visible,
 .downloader-deck {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   background: var(--surface-1);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
-  padding: 20px 22px;
+  padding: 20px 24px;
   box-shadow: var(--shadow-panel);
 }
 
@@ -355,8 +372,8 @@ select:focus-visible,
   background: var(--surface-inset);
   border: 1px solid var(--hairline-strong);
   border-radius: var(--radius-md);
-  padding: 5px 6px 5px 14px;
-  gap: 10px;
+  padding: 4px 8px 4px 16px;
+  gap: 8px;
   transition: border-color 0.12s ease;
 }
 
@@ -380,10 +397,9 @@ select:focus-visible,
 
 .detected-platform-badge {
   font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 3px 8px;
+  font-weight: 600;
+  letter-spacing: 0;
+  padding: 4px 8px;
   border-radius: var(--radius-xs);
   border: 1px solid;
   white-space: nowrap;
@@ -394,22 +410,21 @@ select:focus-visible,
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 .supported-label {
   font-size: 11px;
   font-weight: 600;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 
 .supported-chips {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -418,7 +433,7 @@ select:focus-visible,
   font-weight: 500;
   color: var(--text-subtle);
   background: var(--surface-2);
-  padding: 2px 7px;
+  padding: 4px 8px;
   border-radius: var(--radius-xs);
   border: 1px solid var(--hairline-subtle);
 }
@@ -436,9 +451,9 @@ select:focus-visible,
 
 .mode-segmented-group {
   display: inline-flex;
-  gap: 2px;
+  gap: 4px;
   background: var(--surface-inset);
-  padding: 2px;
+  padding: 4px;
   border-radius: var(--radius-md);
   border: 1px solid var(--hairline);
 }
@@ -446,8 +461,8 @@ select:focus-visible,
 .mode-pill {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 12px;
+  gap: 8px;
+  padding: 4px 12px;
   border-radius: var(--radius-sm);
   color: var(--text-subtle);
   font-size: 12px;
@@ -457,7 +472,7 @@ select:focus-visible,
 
 .mode-pill:hover {
   color: var(--text-ink);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--hover-subtle);
 }
 
 .mode-pill.active {
@@ -468,8 +483,8 @@ select:focus-visible,
 }
 
 .mode-pill.stems-active {
-  background: rgba(167, 139, 250, 0.12);
-  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: var(--stems-fill);
+  border: 1px solid var(--stems-border);
   color: var(--stem-vocals);
   font-weight: 600;
 }
@@ -481,7 +496,7 @@ select:focus-visible,
 }
 
 .quality-pill {
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: var(--radius-xs);
   background: var(--surface-2);
   color: var(--text-subtle);
@@ -503,9 +518,7 @@ select:focus-visible,
   font-weight: 600;
 }
 
-/* ==========================================================================
-   ACTIVITY QUEUE — Precision Tabular Cards
-   ========================================================================== */
+/* Activity Queue */
 .queue-section {
   display: flex;
   flex-direction: column;
@@ -528,17 +541,18 @@ select:focus-visible,
 .queue-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .queue-card {
   background: var(--surface-1);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
-  padding: 14px 18px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  color: var(--text-ink);
   transition: border-color 0.12s ease;
 }
 
@@ -563,8 +577,9 @@ select:focus-visible,
 
 .queue-platform-badge {
   font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
+  font-weight: 600;
+  letter-spacing: 0;
+  padding: 4px 8px;
   border-radius: var(--radius-xs);
   border: 1px solid;
   white-space: nowrap;
@@ -573,9 +588,8 @@ select:focus-visible,
 .queue-mode-badge {
   font-size: 10px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 2px 7px;
+  letter-spacing: 0;
+  padding: 4px 8px;
   border-radius: var(--radius-xs);
   background: var(--surface-2);
   color: var(--text-subtle);
@@ -583,9 +597,9 @@ select:focus-visible,
 }
 
 .queue-mode-badge.stems {
-  background: rgba(167, 139, 250, 0.1);
+  background: var(--stems-badge-fill);
   color: var(--stem-vocals);
-  border-color: rgba(167, 139, 250, 0.25);
+  border-color: var(--stems-badge-border);
 }
 
 .queue-item-url {
@@ -601,14 +615,14 @@ select:focus-visible,
 .queue-card-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 /* Progress Indicator */
 .progress-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .progress-track {
@@ -621,9 +635,11 @@ select:focus-visible,
 
 .progress-fill {
   height: 100%;
+  width: 100%;
+  transform-origin: left;
   background: var(--accent-primary);
   border-radius: 2px;
-  transition: width 0.15s ease-out;
+  transition: transform 0.15s ease-out;
 }
 
 .progress-fill.stems-fill {
@@ -650,9 +666,7 @@ select:focus-visible,
   gap: 12px;
 }
 
-/* ==========================================================================
-   STEM STUDIO / MINI-DAW — Hardware Precision Rack
-   ========================================================================== */
+/* Stem Studio: Mini-DAW */
 .stem-studio-container {
   display: flex;
   flex-direction: column;
@@ -660,7 +674,7 @@ select:focus-visible,
   background: var(--surface-1);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
-  padding: 22px;
+  padding: 24px;
   box-shadow: var(--shadow-panel);
 }
 
@@ -669,31 +683,30 @@ select:focus-visible,
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding-bottom: 14px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--hairline);
 }
 
 .stem-header-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
 }
 
 .stem-live-indicator {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0;
   color: var(--text-tertiary);
-  text-transform: uppercase;
 }
 
 .live-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 
@@ -720,7 +733,7 @@ select:focus-visible,
   background: var(--surface-2);
   border: 1px solid var(--hairline-strong);
   border-radius: var(--radius-md);
-  padding: 10px 16px;
+  padding: 8px 16px;
 }
 
 .stem-spinner {
@@ -747,9 +760,9 @@ select:focus-visible,
 .stem-presets-bar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--surface-inset);
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--hairline);
   flex-wrap: wrap;
@@ -758,7 +771,7 @@ select:focus-visible,
 .presets-label {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-size: 11.5px;
   font-weight: 600;
   color: var(--text-tertiary);
@@ -766,13 +779,14 @@ select:focus-visible,
 }
 
 .preset-pill {
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: var(--radius-xs);
   background: var(--surface-2);
   color: var(--text-subtle);
   font-size: 11.5px;
   font-weight: 500;
   border: 1px solid var(--hairline-subtle);
+  white-space: nowrap;
   transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 
@@ -814,9 +828,9 @@ select:focus-visible,
   opacity: 0.65;
 }
 
-/* Track Controls (Left Strip) */
+/* Track Controls */
 .stem-track-controls {
-  padding: 10px 14px;
+  padding: 8px 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -827,28 +841,28 @@ select:focus-visible,
 .stem-track-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 8px;
+  gap: 8px;
+  padding: 4px 8px;
   border-radius: var(--radius-xs);
   font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  letter-spacing: 0;
   width: fit-content;
 }
 
 .stem-track-buttons {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .stem-btn {
-  width: 26px;
-  height: 22px;
+  width: 28px;
+  height: 24px;
   border-radius: var(--radius-xs);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   background: var(--surface-2);
-  color: var(--text-tertiary);
+  color: var(--text-muted);
   border: 1px solid var(--hairline);
   transition: background-color 0.1s ease, color 0.1s ease, border-color 0.1s ease;
 }
@@ -859,14 +873,14 @@ select:focus-visible,
 }
 
 .mute-btn.active {
-  background: var(--semantic-danger);
-  color: #ffffff;
-  border-color: var(--semantic-danger);
+  background: var(--semantic-danger-hover);
+  color: var(--paper-pure);
+  border-color: var(--semantic-danger-hover);
 }
 
 .solo-btn.active {
   background: var(--semantic-warning);
-  color: #000000;
+  color: var(--ink-pure);
   border-color: var(--semantic-warning);
 }
 
@@ -874,7 +888,7 @@ select:focus-visible,
 .stem-fader-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .fader-row {
@@ -892,7 +906,7 @@ select:focus-visible,
 
 .stem-slider {
   flex: 1;
-  height: 3px;
+  height: 4px;
   border-radius: 2px;
   background: var(--hairline-strong);
   outline: none;
@@ -906,12 +920,12 @@ select:focus-visible,
   color: var(--text-subtle);
 }
 
-/* Waveform Lane (Right Body) */
+/* Waveform Lane */
 .stem-waveform-lane {
   position: relative;
   display: flex;
   align-items: center;
-  padding: 0 14px;
+  padding: 0 16px;
   height: 72px;
   cursor: pointer;
   background: var(--surface-2);
@@ -927,7 +941,7 @@ select:focus-visible,
   top: 0;
   bottom: 0;
   width: 1px;
-  background: #ffffff;
+  background: var(--paper-strong);
   pointer-events: none;
   z-index: 10;
 }
@@ -935,7 +949,7 @@ select:focus-visible,
 .stem-bars-row {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   width: 100%;
   height: 100%;
 }
@@ -947,7 +961,7 @@ select:focus-visible,
   transition: background-color 0.1s ease;
 }
 
-/* Hardware Transport Bar (Bottom Strip) */
+/* Hardware Transport Bar */
 .stem-transport-bar {
   display: flex;
   align-items: center;
@@ -955,7 +969,7 @@ select:focus-visible,
   background: var(--surface-inset);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
-  padding: 10px 18px;
+  padding: 8px 16px;
 }
 
 .transport-controls {
@@ -983,15 +997,15 @@ select:focus-visible,
 }
 
 .transport-btn.play-btn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   background: var(--text-ink);
   color: var(--text-inverse);
   border-radius: var(--radius-sm);
 }
 
 .transport-btn.play-btn:hover {
-  background: #ffffff;
+  background: var(--paper-strong);
 }
 
 .transport-time-display {
@@ -1011,9 +1025,9 @@ select:focus-visible,
 
 .transport-scrub-track {
   flex: 1;
-  height: 5px;
+  height: 4px;
   background: var(--surface-2);
-  border-radius: 3px;
+  border-radius: 2px;
   position: relative;
   cursor: pointer;
   overflow: hidden;
@@ -1035,7 +1049,7 @@ select:focus-visible,
 
 .master-volume-slider {
   flex: 1;
-  height: 3px;
+  height: 4px;
   accent-color: var(--accent-primary);
 }
 
@@ -1050,7 +1064,8 @@ select:focus-visible,
   background: var(--surface-1);
   border: 1px dashed var(--hairline-strong);
   border-radius: var(--radius-lg);
-  gap: 14px;
+  gap: 16px;
+  color: var(--text-ink);
 }
 
 .stem-empty-icon {
@@ -1061,7 +1076,7 @@ select:focus-visible,
   display: grid;
   place-items: center;
   border: 1px solid var(--hairline);
-  color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 .stem-studio-empty h3 {
@@ -1089,22 +1104,21 @@ select:focus-visible,
   font-size: 12px;
   font-weight: 600;
   color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
   margin-bottom: 8px;
 }
 
 .stem-recent-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .stem-recent-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 8px 16px;
   background: var(--surface-2);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
@@ -1129,9 +1143,7 @@ select:focus-visible,
   color: var(--text-subtle);
 }
 
-/* ==========================================================================
-   SETTINGS VIEW
-   ========================================================================== */
+/* Settings View */
 .settings-view {
   display: flex;
   flex-direction: column;
@@ -1148,6 +1160,7 @@ select:focus-visible,
   display: flex;
   flex-direction: column;
   gap: 20px;
+  color: var(--text-ink);
   box-shadow: var(--shadow-panel);
 }
 
@@ -1220,7 +1233,7 @@ select:focus-visible,
   font-weight: 600;
   color: var(--text-ink);
   font-variant-numeric: tabular-nums;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .settings-update-actions {
@@ -1232,7 +1245,7 @@ select:focus-visible,
 .settings-update-progress-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .settings-update-progress-label {
@@ -1254,9 +1267,11 @@ select:focus-visible,
 
 .settings-update-progress-fill {
   height: 100%;
+  width: 100%;
+  transform-origin: left;
   background: var(--accent-primary);
   border-radius: 2px;
-  transition: width 0.15s ease-out;
+  transition: transform 0.15s ease-out;
 }
 
 @keyframes spin {
@@ -1272,9 +1287,7 @@ select:focus-visible,
   animation: spin 1s linear infinite;
 }
 
-/* ==========================================================================
-   REDUCED MOTION SUPPORT (Web Interface Guidelines)
-   ========================================================================== */
+/* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

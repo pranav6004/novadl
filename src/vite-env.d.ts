@@ -60,6 +60,7 @@ interface Window {
     removeDownload: (id: string) => Promise<boolean>;
     openFolder: () => Promise<void>;
     listStemProjects: () => Promise<StemProject[]>;
+    getStemMediaUrl: (filePath: string) => string;
     readStemAudio: (filePath: string) => Promise<string | null>;
     chooseLocalFile: () => Promise<string | null>;
     processLocalFile: (filePath: string) => Promise<StemProject>;

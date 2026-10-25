@@ -1,9 +1,24 @@
-const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, shell, protocol, net } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const { spawn } = require("node:child_process");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
+const url = require("node:url");
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "novadl-media",
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true,
+      bypassCSP: true
+    }
+  }
+]);
 
 const {
   normalizeBrowser,
@@ -952,6 +967,11 @@ function runDownload({ id, safeRequest, settings, download }) {
             await tryDeleteFile(download.outputPath);
           }
 
+          if (stemProject?.folder) {
+            const files = downloadFiles.get(id);
+            if (files) files.add(stemProject.folder);
+          }
+
           downloads.delete(id);
           sendDownloadEvent(id, {
             type: "complete",
@@ -1119,7 +1139,14 @@ ipcMain.handle("downloads:remove", async (_event, id) => {
     if (files) {
       for (const file of files) {
         try {
-          if (fs.existsSync(file)) fs.unlinkSync(file);
+          if (fs.existsSync(file)) {
+            const stat = fs.statSync(file);
+            if (stat.isDirectory()) {
+              fs.rmSync(file, { recursive: true, force: true });
+            } else {
+              fs.unlinkSync(file);
+            }
+          }
           if (fs.existsSync(file + ".part")) fs.unlinkSync(file + ".part");
           if (fs.existsSync(file + ".ytdl")) fs.unlinkSync(file + ".ytdl");
         } catch {
@@ -1256,7 +1283,9 @@ ipcMain.handle("stems:export", async (_event, { projectFolder, stemIds, format =
       ]);
     } else {
       const destFile = path.join(exportDir, `${stem}.wav`);
-      fs.copyFileSync(srcFile, destFile);
+      if (path.resolve(srcFile) !== path.resolve(destFile)) {
+        fs.copyFileSync(srcFile, destFile);
+      }
     }
   }
 
@@ -1306,6 +1335,29 @@ ipcMain.handle("updater:get-version", () => {
 });
 
 app.whenReady().then(() => {
+  protocol.handle("novadl-media", (request) => {
+    try {
+      const urlObj = new URL(request.url);
+      let filePath = decodeURIComponent(urlObj.pathname);
+      if (process.platform === "win32" && filePath.startsWith("/") && filePath[2] === ":") {
+        filePath = filePath.slice(1);
+      }
+      const resolved = path.resolve(filePath);
+      if (!fs.existsSync(resolved)) {
+        return new Response("Not found", { status: 404 });
+      }
+      const ext = path.extname(resolved).toLowerCase();
+      if (![".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac"].includes(ext)) {
+        return new Response("Forbidden", { status: 403 });
+      }
+      return net.fetch(url.pathToFileURL(resolved).toString(), {
+        bypassCustomProtocolHandlers: true
+      });
+    } catch (err) {
+      return new Response(err ? err.message : "Media streaming error", { status: 500 });
+    }
+  });
+
   createWindow();
 
   app.on("activate", () => {

@@ -14,57 +14,62 @@ export interface StemTrackState {
 export type PresetType = "all" | "karaoke" | "acapella" | "rhythm" | "instrumental";
 
 export class MultiTrackStemEngine {
-  private ctx: AudioContext | null = null;
-  private buffers: Partial<Record<StemId, AudioBuffer>> = {};
-  private sourceNodes: Partial<Record<StemId, AudioBufferSourceNode>> = {};
-  private gainNodes: Partial<Record<StemId, GainNode>> = {};
-  private pannerNodes: Partial<Record<StemId, StereoPannerNode>> = {};
-  private masterGain: GainNode | null = null;
-
+  private audioElements: Partial<Record<StemId, HTMLAudioElement>> = {};
   private isPlaying = false;
   private duration = 0;
-  private playbackRate = 1.0;
-  private startTime = 0;
-  private pauseOffset = 0;
   private animFrameId: number | null = null;
+  private masterVolume = 0.9;
+  private currentTracks: Record<StemId, { volume: number; pan: number; muted: boolean; solo: boolean }> | null = null;
 
   private onTimeUpdateCallback: ((time: number) => void) | null = null;
   private onStateChangeCallback: ((playing: boolean) => void) | null = null;
 
-  constructor() {
-    // Lazy AudioContext initialization on first user interaction
+  public async loadStem(stemId: StemId, mediaUrl: string): Promise<void> {
+    return new Promise((resolve) => {
+      let audio = this.audioElements[stemId];
+      if (!audio) {
+        audio = new Audio();
+        audio.preload = "auto";
+        this.audioElements[stemId] = audio;
+      }
+
+      const onLoaded = () => {
+        if (audio.duration && isFinite(audio.duration) && audio.duration > this.duration) {
+          this.duration = audio.duration;
+        }
+        cleanup();
+        resolve();
+      };
+
+      const onError = () => {
+        cleanup();
+        resolve(); // Don't block whole project if single stem fails
+      };
+
+      const cleanup = () => {
+        audio.removeEventListener("loadedmetadata", onLoaded);
+        audio.removeEventListener("canplaythrough", onLoaded);
+        audio.removeEventListener("error", onError);
+      };
+
+      audio.addEventListener("loadedmetadata", onLoaded);
+      audio.addEventListener("canplaythrough", onLoaded);
+      audio.addEventListener("error", onError);
+
+      audio.src = mediaUrl;
+      audio.load();
+
+      // Quick timeout fallback so UI never hangs
+      setTimeout(() => {
+        cleanup();
+        resolve();
+      }, 2000);
+    });
   }
 
-  private initContext(): AudioContext {
-    if (!this.ctx) {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      this.ctx = new AudioCtx();
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = 0.95;
-      this.masterGain.connect(this.ctx.destination);
-    }
-    if (this.ctx.state === "suspended") {
-      void this.ctx.resume();
-    }
-    return this.ctx;
-  }
-
-  public async loadStemBuffer(stemId: StemId, base64DataUrl: string): Promise<AudioBuffer> {
-    const ctx = this.initContext();
-    const base64 = base64DataUrl.split(",")[1] || base64DataUrl;
-    const binaryString = window.atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-
-    const decoded = await ctx.decodeAudioData(bytes.buffer);
-    this.buffers[stemId] = decoded;
-    if (decoded.duration > this.duration) {
-      this.duration = decoded.duration;
-    }
-    return decoded;
+  // Backwards compatibility fallback for small audio buffers
+  public async loadStemBuffer(stemId: StemId, base64DataUrl: string): Promise<void> {
+    await this.loadStem(stemId, base64DataUrl);
   }
 
   public getDuration(): number {
@@ -80,43 +85,23 @@ export class MultiTrackStemEngine {
   }
 
   public play(offsetSeconds?: number): void {
-    const ctx = this.initContext();
     if (this.isPlaying) return;
-
-    if (typeof offsetSeconds === "number") {
-      this.pauseOffset = Math.max(0, Math.min(offsetSeconds, this.duration));
-    }
-
-    this.stopSources();
-
-    const stemKeys = Object.keys(this.buffers) as StemId[];
+    const stemKeys = Object.keys(this.audioElements) as StemId[];
     if (stemKeys.length === 0) return;
 
-    this.startTime = ctx.currentTime - this.pauseOffset;
+    if (typeof offsetSeconds === "number") {
+      this.seek(offsetSeconds);
+    }
+
+    if (this.currentTracks) {
+      this.updateTrackMix(this.currentTracks);
+    }
 
     for (const id of stemKeys) {
-      const buffer = this.buffers[id];
-      if (!buffer) continue;
-
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.playbackRate.value = this.playbackRate;
-
-      let gainNode = this.gainNodes[id];
-      let panNode = this.pannerNodes[id];
-
-      if (!gainNode || !panNode) {
-        gainNode = ctx.createGain();
-        panNode = ctx.createStereoPanner();
-        gainNode.connect(panNode);
-        panNode.connect(this.masterGain!);
-        this.gainNodes[id] = gainNode;
-        this.pannerNodes[id] = panNode;
+      const el = this.audioElements[id];
+      if (el) {
+        void el.play().catch(() => {});
       }
-
-      source.connect(gainNode);
-      source.start(0, this.pauseOffset);
-      this.sourceNodes[id] = source;
     }
 
     this.isPlaying = true;
@@ -126,77 +111,72 @@ export class MultiTrackStemEngine {
 
   public pause(): void {
     if (!this.isPlaying) return;
-    const ctx = this.initContext();
-    this.pauseOffset = Math.min(this.duration, ctx.currentTime - this.startTime);
-    this.stopSources();
+    for (const el of Object.values(this.audioElements)) {
+      el?.pause();
+    }
     this.isPlaying = false;
     this.stopTracking();
     this.onStateChangeCallback?.(false);
   }
 
   public seek(targetSeconds: number): void {
-    const clamped = Math.max(0, Math.min(targetSeconds, this.duration));
-    this.pauseOffset = clamped;
-    this.onTimeUpdateCallback?.(clamped);
-
-    if (this.isPlaying) {
-      this.stopSources();
-      this.isPlaying = false;
-      this.play(clamped);
+    const clamped = Math.max(0, Math.min(targetSeconds, this.duration || targetSeconds));
+    for (const el of Object.values(this.audioElements)) {
+      if (el) {
+        try {
+          el.currentTime = clamped;
+        } catch {}
+      }
     }
+    this.onTimeUpdateCallback?.(clamped);
   }
 
   public updateTrackMix(tracks: Record<StemId, { volume: number; pan: number; muted: boolean; solo: boolean }>): void {
+    this.currentTracks = tracks;
     const hasAnySolo = Object.values(tracks).some((t) => t.solo);
 
     for (const [idStr, state] of Object.entries(tracks)) {
       const id = idStr as StemId;
-      const gainNode = this.gainNodes[id];
-      const panNode = this.pannerNodes[id];
+      const el = this.audioElements[id];
+      if (!el) continue;
 
-      if (gainNode) {
-        let targetGain = state.volume;
-        if (state.muted) {
-          targetGain = 0;
-        } else if (hasAnySolo) {
-          targetGain = state.solo ? state.volume : 0;
-        }
-        gainNode.gain.setTargetAtTime(targetGain, this.ctx?.currentTime || 0, 0.015);
+      let targetGain = state.volume;
+      if (state.muted) {
+        targetGain = 0;
+      } else if (hasAnySolo) {
+        targetGain = state.solo ? state.volume : 0;
       }
-
-      if (panNode) {
-        panNode.pan.setTargetAtTime(state.pan, this.ctx?.currentTime || 0, 0.015);
-      }
+      el.volume = Math.max(0, Math.min(1, targetGain * this.masterVolume));
     }
   }
 
   public setMasterVolume(val: number): void {
-    if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setTargetAtTime(Math.max(0, Math.min(1.2, val)), this.ctx.currentTime, 0.015);
-    }
-  }
-
-  private stopSources(): void {
-    for (const id of Object.keys(this.sourceNodes) as StemId[]) {
-      try {
-        this.sourceNodes[id]?.stop();
-        this.sourceNodes[id]?.disconnect();
-      } catch {}
-      delete this.sourceNodes[id];
+    this.masterVolume = Math.max(0, Math.min(1.2, val));
+    if (this.currentTracks) {
+      this.updateTrackMix(this.currentTracks);
     }
   }
 
   private startTracking(): void {
     this.stopTracking();
     const update = () => {
-      if (!this.isPlaying || !this.ctx) return;
-      const current = this.ctx.currentTime - this.startTime;
-      if (current >= this.duration) {
-        this.seek(0);
-        this.pause();
-        return;
+      if (!this.isPlaying) return;
+      const active = Object.values(this.audioElements).find((el) => el && !el.paused);
+      if (active) {
+        const current = active.currentTime;
+        if (this.duration > 0 && current >= this.duration) {
+          this.seek(0);
+          this.pause();
+          return;
+        }
+        // Keep all playing stems locked in sync (<60ms drift correction)
+        for (const el of Object.values(this.audioElements)) {
+          if (el && !el.paused && Math.abs(el.currentTime - current) > 0.06) {
+            el.currentTime = current;
+          }
+        }
+        this.onTimeUpdateCallback?.(current);
       }
-      this.onTimeUpdateCallback?.(current);
       this.animFrameId = requestAnimationFrame(update);
     };
     this.animFrameId = requestAnimationFrame(update);
@@ -211,11 +191,14 @@ export class MultiTrackStemEngine {
 
   public dispose(): void {
     this.pause();
-    this.stopSources();
-    this.buffers = {};
-    if (this.ctx && this.ctx.state !== "closed") {
-      void this.ctx.close();
-      this.ctx = null;
+    this.stopTracking();
+    for (const el of Object.values(this.audioElements)) {
+      if (el) {
+        el.pause();
+        el.src = "";
+        el.load();
+      }
     }
+    this.audioElements = {};
   }
 }

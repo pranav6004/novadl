@@ -42,6 +42,50 @@ const qualityLabels: Record<DownloadQuality, string> = {
 
 const browsers = ["none", "chrome", "firefox", "edge", "brave", "safari", "opera", "vivaldi"];
 
+import React from "react";
+
+class ErrorBoundary extends React.Component<
+  { fallbackTitle: string; onReset: () => void; children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { fallbackTitle: string; onReset: () => void; children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("ErrorBoundary caught error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="stem-studio-empty" style={{ padding: "40px 20px", textAlign: "center" }}>
+          <div className="stem-empty-icon" style={{ borderColor: "var(--semantic-error)" }}>
+            <AlertCircle size={28} color="var(--semantic-error)" aria-hidden="true" />
+          </div>
+          <h3>{this.props.fallbackTitle}</h3>
+          <p style={{ color: "var(--text-subtle)", maxWidth: "460px", margin: "8px auto" }}>
+            {this.state.error?.message || "An unexpected error occurred while loading this view."}
+          </p>
+          <button
+            className="secondary-btn"
+            style={{ marginTop: "12px" }}
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              this.props.onReset();
+            }}
+          >
+            Return to Downloader
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export function App() {
   const [activeTab, setActiveTab] = useState<"downloader" | "studio" | "settings">("downloader");
   const [url, setUrl] = useState("");
@@ -60,7 +104,7 @@ export function App() {
   const [activeStemProject, setActiveStemProject] = useState<StemProject | null>(null);
 
   // Auto-updater state
-  const [appVersion, setAppVersion] = useState<string>("0.2.3");
+  const [appVersion, setAppVersion] = useState<string>("0.2.4");
   const [updateStatus, setUpdateStatus] = useState<UpdateStatusEvent>({ status: "up-to-date" });
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
@@ -528,7 +572,7 @@ export function App() {
                         <div className="progress-track">
                           <div
                             className={`progress-fill ${item.mode === "stems" ? "stems-fill" : ""}`}
-                            style={{ width: `${item.progress}%` }}
+                            style={{ transform: `scaleX(${Math.max(0, Math.min(100, item.progress)) / 100})` }}
                           />
                         </div>
                         <div className="progress-stats">
@@ -552,14 +596,16 @@ export function App() {
         {/* Stem Studio View */}
         {activeTab === "studio" && (
           <div className="studio-view">
-            <StemMixer
-              project={activeStemProject}
-              onOpenFolder={(folder) => window.ytDlpUi.openStemFolder(folder)}
-              onExport={handleExportStems}
-              onDelete={handleDeleteStemProject}
-              onSelectProject={(proj) => setActiveStemProject(proj)}
-              allProjects={stemProjects}
-            />
+            <ErrorBoundary fallbackTitle="Stem Studio Encountered an Error" onReset={() => setActiveTab("downloader")}>
+              <StemMixer
+                project={activeStemProject}
+                onOpenFolder={(folder) => window.ytDlpUi.openStemFolder(folder)}
+                onExport={handleExportStems}
+                onDelete={handleDeleteStemProject}
+                onSelectProject={(proj) => setActiveStemProject(proj)}
+                allProjects={stemProjects}
+              />
+            </ErrorBoundary>
           </div>
         )}
 
@@ -668,7 +714,7 @@ export function App() {
                     <div className="settings-update-progress-track">
                       <div
                         className="settings-update-progress-fill"
-                        style={{ width: `${Math.min(100, Math.max(0, updateStatus.percent || 0))}%` }}
+                        style={{ transform: `scaleX(${Math.min(100, Math.max(0, updateStatus.percent || 0)) / 100})` }}
                       />
                     </div>
                   </div>
