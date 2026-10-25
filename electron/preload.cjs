@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld("ytDlpUi", {
   removeDownload: (id) => ipcRenderer.invoke("downloads:remove", id),
   openFolder: () => ipcRenderer.invoke("folder:open"),
   listStemProjects: () => ipcRenderer.invoke("stems:list"),
+  getStemEngineStatus: () => ipcRenderer.invoke("stems:get-engine-status"),
   getStemMediaUrl: (filePath) => `novadl-media://local/${encodeURI(String(filePath || "").replace(/\\/g, "/"))}`,
   readStemAudio: (filePath) => ipcRenderer.invoke("stems:read-audio", filePath),
   chooseLocalFile: () => ipcRenderer.invoke("stems:choose-local-file"),

@@ -1,3 +1,7 @@
+const fs = require("node:fs");
+const path = require("node:path");
+const os = require("node:os");
+
 const allowedBrowsers = new Set(["none", "chrome", "firefox", "edge", "brave", "safari", "opera", "vivaldi"]);
 const allowedModes = new Set(["video", "video-only", "audio", "stems"]);
 const allowedQualities = new Set(["original", "1080", "720"]);
@@ -230,6 +234,68 @@ function parseProgress(line) {
   };
 }
 
+function detectStemKitEngine(customPaths = {}) {
+  const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+  const appData = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
+
+  const candidates = [
+    {
+      name: "StemKit Local Install",
+      resourcesPython: customPaths.resourcesPython || path.join(localAppData, "Programs", "stemkit", "resources", "python"),
+      venvPython: customPaths.venvPython || path.join(appData, "StemKit", "venv", "Scripts", "python.exe"),
+      modelsDir: customPaths.modelsDir || path.join(appData, "StemKit", "models"),
+      readyMarker: path.join(appData, "StemKit", "venv", ".ready")
+    },
+    {
+      name: "StemKit System/Posix",
+      resourcesPython: path.join(os.homedir(), ".stemkit", "python"),
+      venvPython: path.join(os.homedir(), ".stemkit", "venv", "bin", "python"),
+      modelsDir: path.join(os.homedir(), ".stemkit", "models"),
+      readyMarker: path.join(os.homedir(), ".stemkit", "venv", ".ready")
+    }
+  ];
+
+  for (const c of candidates) {
+    const hasPython = fs.existsSync(c.venvPython);
+    const hasSeparate = fs.existsSync(path.join(c.resourcesPython, "separate.py"));
+    const hasRoformer = fs.existsSync(path.join(c.resourcesPython, "roformer.py"));
+    const hasVocalsModel = fs.existsSync(path.join(c.modelsDir, "MelBandRoformer.ckpt"));
+    const isReady = hasPython && hasSeparate;
+
+    if (hasPython && hasSeparate) {
+      return {
+        detected: true,
+        ready: isReady,
+        pythonPath: c.venvPython,
+        resourcesPython: c.resourcesPython,
+        separateScript: path.join(c.resourcesPython, "separate.py"),
+        roformerScript: path.join(c.resourcesPython, "roformer.py"),
+        modelsDir: c.modelsDir,
+        hasRoformer: hasRoformer && hasVocalsModel,
+        hasVocalsModel,
+        hasDemucs: true,
+        hasGpu: true,
+        name: c.name,
+        engineType: "stemkit_ai",
+        message: hasVocalsModel
+          ? "StemKit AI Engine ready (MelBandRoformer + Demucs with GPU acceleration)."
+          : "StemKit detected. Vocal model (MelBandRoformer) downloading or missing."
+      };
+    }
+  }
+
+  return {
+    detected: false,
+    ready: false,
+    hasGpu: false,
+    hasRoformer: false,
+    hasVocalsModel: false,
+    hasDemucs: false,
+    engineType: "dsp_fallback",
+    message: "StemKit AI separation requirements not found. Install StemKit to unlock studio-quality AI stem splitting."
+  };
+}
+
 module.exports = {
   allowedBrowsers,
   allowedModes,
@@ -248,5 +314,6 @@ module.exports = {
   normalizeComparablePathName,
   sanitizeStemTitle,
   getStemSeparationFilters,
+  detectStemKitEngine,
   parseProgress
 };

@@ -48,6 +48,7 @@ export const StemMixer: React.FC<StemMixerProps> = ({
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [activePreset, setActivePreset] = useState<PresetType>("all");
   const [masterVolume, setMasterVolume] = useState(0.9);
+  const [engineStatus, setEngineStatus] = useState<StemEngineStatus | null>(null);
 
   const [tracks, setTracks] = useState<Record<StemId, StemTrackState>>({
     vocals: { id: "vocals", label: "Vocals", color: "#a78bfa", volume: 0.85, pan: 0, muted: false, solo: false, waveform: [] },
@@ -57,6 +58,12 @@ export const StemMixer: React.FC<StemMixerProps> = ({
   });
 
   const waveformContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    window.ytDlpUi?.getStemEngineStatus?.().then((status) => {
+      if (status) setEngineStatus(status);
+    }).catch(() => {});
+  }, []);
 
   // Load project audio into Web Audio Engine
   useEffect(() => {
@@ -257,6 +264,20 @@ export const StemMixer: React.FC<StemMixerProps> = ({
         </div>
         <h3>Stem Studio: Mini DAW</h3>
         <p>Isolate and mix musical stems (Vocals, Drums, Bass, Instruments) locally with zero latency.</p>
+        {engineStatus && (
+          <div className="stem-engine-card" role="region" aria-label="Stem separation engine status">
+            <div className="stem-engine-meta">
+              <span className={`stem-engine-pill ${engineStatus.ready ? "ready" : "needed"}`}>
+                {engineStatus.ready ? "StemKit AI Engine Ready" : "Requirements Needed"}
+              </span>
+              <p className="stem-engine-desc">
+                {engineStatus.ready
+                  ? "Powered by StemKit deep learning models (MelBandRoformer studio vocals + Demucs instrument isolation with NVIDIA GPU acceleration)."
+                  : "StemKit usually tells us to download requirements first. Install or run StemKit to download weights (MelBandRoformer & Demucs) for studio-quality AI stem splitting."}
+              </p>
+            </div>
+          </div>
+        )}
         <div className="stem-empty-actions" style={{ marginTop: "8px" }}>
           <button
             className="primary-btn"
@@ -305,6 +326,11 @@ export const StemMixer: React.FC<StemMixerProps> = ({
             <span className="live-label">
               {isLoading ? "DECODING AUDIO…" : isPlaying ? "PLAYING" : "STUDIO READY"}
             </span>
+            {engineStatus?.ready && (
+              <span className="stem-engine-active-chip">
+                StemKit AI (GPU)
+              </span>
+            )}
           </div>
           <h2 className="stem-project-title" title={project.title}>
             {project.title}
@@ -396,9 +422,9 @@ export const StemMixer: React.FC<StemMixerProps> = ({
       {/* Multi-Track Hardware Lanes */}
       <div className="stem-lanes-container" ref={waveformContainerRef}>
         {(["vocals", "drums", "bass", "other"] as StemId[]).map((id) => {
-          const track = tracks[id];
+          const track = tracks[id] || { id, label: id, color: "#a78bfa", volume: 0.85, pan: 0, muted: false, solo: false, waveform: [] };
           const cfg = STEM_CONFIGS[id];
-          const hasAnySolo = Object.values(tracks).some((t) => t.solo);
+          const hasAnySolo = Object.values(tracks).some((t) => t?.solo);
           const isDimmed = (hasAnySolo && !track.solo) || track.muted;
 
           return (
@@ -504,8 +530,9 @@ export const StemMixer: React.FC<StemMixerProps> = ({
 
                 <div className="stem-bars-row">
                   {(track?.waveform || []).map((peak, idx) => {
-                    const isPassed = duration > 0 && idx / track.waveform.length <= currentTime / duration;
-                    const barHeight = Math.max(10, Math.round(peak * 48));
+                    const waveLen = track?.waveform?.length || 64;
+                    const isPassed = duration > 0 && idx / waveLen <= currentTime / duration;
+                    const barHeight = Math.max(10, Math.round((peak || 0.1) * 48));
 
                     return (
                       <div

@@ -1,6 +1,6 @@
 {
   "name": "novadl",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "description": "A friendly desktop UI for yt-dlp.",
   "author": "NovaDL",

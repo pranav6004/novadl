@@ -17,6 +17,7 @@ const {
   detectMediaPlatform,
   DEFAULT_STEMS,
   STEM_CONFIG,
+  detectStemKitEngine,
   parseProgress
 } = require("../electron/utils.cjs");
 
@@ -248,6 +249,32 @@ describe("StemKit streaming media protocol format", () => {
 
     const specialUrl = formatMediaUrl("C:\\Music\\Track #1 [Remix] (Live).wav");
     assert.ok(specialUrl.startsWith("novadl-media://local/C:/Music/Track%20"));
+  });
+});
+
+describe("detectStemKitEngine", () => {
+  test("returns structured engine status with fallback when paths do not exist", () => {
+    const status = detectStemKitEngine({
+      resourcesPython: "C:\\nonexistent\\python",
+      venvPython: "C:\\nonexistent\\venv\\python.exe",
+      modelsDir: "C:\\nonexistent\\models"
+    });
+    assert.equal(typeof status, "object");
+    assert.equal(typeof status.detected, "boolean");
+    assert.equal(typeof status.ready, "boolean");
+    assert.equal(typeof status.engineType, "string");
+  });
+
+  test("correctly identifies available StemKit installation or fallback", () => {
+    const status = detectStemKitEngine();
+    assert.equal(typeof status.detected, "boolean");
+    if (status.detected) {
+      assert.equal(status.engineType, "stemkit_ai");
+      assert.ok(status.pythonPath);
+      assert.ok(status.separateScript);
+    } else {
+      assert.equal(status.engineType, "dsp_fallback");
+    }
   });
 });
 

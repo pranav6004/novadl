@@ -33,6 +33,7 @@ const {
   getStemSeparationFilters,
   DEFAULT_STEMS,
   STEM_CONFIG,
+  detectStemKitEngine,
   parseProgress
 } = require("./utils.cjs");
 
@@ -797,38 +798,146 @@ async function separateAudioStems({ id, download, sourceWavPath, downloadPath, t
   const stemFiles = {};
   const waveforms = {};
 
-  const totalStems = DEFAULT_STEMS.length;
-  for (let idx = 0; idx < totalStems; idx++) {
-    if (download && download.cancelled) throw new Error("Separation cancelled");
+  const engine = detectStemKitEngine();
+  let aiSeparationSucceeded = false;
 
-    const stemId = DEFAULT_STEMS[idx];
-    const outStemPath = path.join(projectDir, `${stemId}.wav`);
-    const filter = filters[stemId];
+  if (engine.detected && engine.ready) {
+    try {
+      if (id) {
+        sendDownloadEvent(id, {
+          type: "progress",
+          percent: 75,
+          message: "Starting StemKit AI separation engine (GPU accelerated)…"
+        });
+      }
 
-    if (id) {
-      sendDownloadEvent(id, {
-        type: "progress",
-        percent: Math.round(75 + ((idx + 1) / totalStems) * 23),
-        message: `Extracting ${STEM_CONFIG[stemId]?.label || stemId} stem...`
-      });
+      // 1. Separate vocals if RoFormer script and model exist
+      if (engine.hasRoformer && fs.existsSync(engine.roformerScript)) {
+        if (id) {
+          sendDownloadEvent(id, {
+            type: "progress",
+            percent: 78,
+            message: "StemKit AI: Extracting studio vocals with MelBandRoformer…"
+          });
+        }
+        await new Promise((resolve, reject) => {
+          const proc = spawn(engine.pythonPath, [
+            engine.roformerScript,
+            "--input", resolvedSource,
+            "--out", projectDir,
+            "--ckpt-dir", engine.modelsDir,
+            "--device", "auto"
+          ], { windowsHide: true });
+          if (download) download.ffmpeg = proc;
+
+          proc.stdout?.on("data", (chunk) => {
+            for (const line of chunk.toString().split(/\r?\n/)) {
+              try {
+                const parsed = JSON.parse(line.trim());
+                if (parsed.type === "progress" && id) {
+                  sendDownloadEvent(id, {
+                    type: "progress",
+                    percent: Math.round(75 + (parsed.pct || 0) * 0.12),
+                    message: parsed.message || `MelBandRoformer vocals: ${parsed.pct || 0}%`
+                  });
+                }
+              } catch {}
+            }
+          });
+          proc.on("close", (code) => code === 0 ? resolve() : reject(new Error(`RoFormer exited with code ${code}`)));
+          proc.on("error", reject);
+        });
+      }
+
+      // 2. Separate remaining stems (drums, bass, other) via Demucs
+      if (fs.existsSync(engine.separateScript)) {
+        if (id) {
+          sendDownloadEvent(id, {
+            type: "progress",
+            percent: 88,
+            message: "StemKit AI: Separating drums, bass, and instruments with Demucs…"
+          });
+        }
+        await new Promise((resolve, reject) => {
+          const onlyArg = engine.hasRoformer ? "drums,bass,other" : "drums,bass,other,vocals";
+          const proc = spawn(engine.pythonPath, [
+            engine.separateScript,
+            "--input", resolvedSource,
+            "--out", projectDir,
+            "--model", "htdemucs",
+            "--device", "auto",
+            "--only", onlyArg
+          ], { windowsHide: true });
+          if (download) download.ffmpeg = proc;
+
+          proc.stdout?.on("data", (chunk) => {
+            for (const line of chunk.toString().split(/\r?\n/)) {
+              try {
+                const parsed = JSON.parse(line.trim());
+                if (parsed.type === "progress" && id) {
+                  sendDownloadEvent(id, {
+                    type: "progress",
+                    percent: Math.round(87 + (parsed.pct || 0) * 0.12),
+                    message: parsed.message || `Demucs stems: ${parsed.pct || 0}%`
+                  });
+                }
+              } catch {}
+            }
+          });
+          proc.on("close", (code) => code === 0 ? resolve() : reject(new Error(`Demucs exited with code ${code}`)));
+          proc.on("error", reject);
+        });
+      }
+
+      const allExist = DEFAULT_STEMS.every((stemId) => fs.existsSync(path.join(projectDir, `${stemId}.wav`)));
+      if (allExist) {
+        aiSeparationSucceeded = true;
+        for (const stemId of DEFAULT_STEMS) {
+          const stemPath = path.join(projectDir, `${stemId}.wav`);
+          stemFiles[stemId] = `${stemId}.wav`;
+          waveforms[stemId] = extractWavWaveform(stemPath, 64);
+        }
+      }
+    } catch (err) {
+      console.warn("StemKit AI separation error, using DSP fallback:", err ? err.message : err);
     }
+  }
 
-    const ffmpegArgs = [
-      "-y",
-      "-i", resolvedSource,
-      "-af", filter,
-      "-ar", "44100",
-      "-ac", "2",
-      "-c:a", "pcm_s16le",
-      outStemPath
-    ];
+  // DSP Fallback if AI separation was not ready or did not produce all stems
+  if (!aiSeparationSucceeded) {
+    const totalStems = DEFAULT_STEMS.length;
+    for (let idx = 0; idx < totalStems; idx++) {
+      if (download && download.cancelled) throw new Error("Separation cancelled");
 
-    await runFfmpegCommand(ffmpegArgs, (proc) => {
-      if (download) download.ffmpeg = proc;
-    });
+      const stemId = DEFAULT_STEMS[idx];
+      const outStemPath = path.join(projectDir, `${stemId}.wav`);
+      const filter = filters[stemId];
 
-    stemFiles[stemId] = `${stemId}.wav`;
-    waveforms[stemId] = extractWavWaveform(outStemPath, 64);
+      if (id) {
+        sendDownloadEvent(id, {
+          type: "progress",
+          percent: Math.round(75 + ((idx + 1) / totalStems) * 23),
+          message: `Extracting ${STEM_CONFIG[stemId]?.label || stemId} stem…`
+        });
+      }
+
+      const ffmpegArgs = [
+        "-y",
+        "-i", resolvedSource,
+        "-af", filter,
+        "-ar", "44100",
+        "-ac", "2",
+        "-c:a", "pcm_s16le",
+        outStemPath
+      ];
+
+      await runFfmpegCommand(ffmpegArgs, (proc) => {
+        if (download) download.ffmpeg = proc;
+      });
+
+      stemFiles[stemId] = `${stemId}.wav`;
+      waveforms[stemId] = extractWavWaveform(outStemPath, 64);
+    }
   }
 
   const projectMeta = {
@@ -838,7 +947,8 @@ async function separateAudioStems({ id, download, sourceWavPath, downloadPath, t
     createdAt: Date.now(),
     duration,
     stems: stemFiles,
-    waveforms
+    waveforms,
+    engine: aiSeparationSucceeded ? "stemkit_ai" : "dsp_filter"
   };
 
   fs.writeFileSync(
@@ -1334,6 +1444,10 @@ ipcMain.handle("updater:get-version", () => {
   return app.getVersion();
 });
 
+ipcMain.handle("stems:get-engine-status", () => {
+  return detectStemKitEngine();
+});
+
 app.whenReady().then(() => {
   protocol.handle("novadl-media", (request) => {
     try {
@@ -1350,8 +1464,37 @@ app.whenReady().then(() => {
       if (![".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac"].includes(ext)) {
         return new Response("Forbidden", { status: 403 });
       }
-      return net.fetch(url.pathToFileURL(resolved).toString(), {
-        bypassCustomProtocolHandlers: true
+
+      const stat = fs.statSync(resolved);
+      const fileSize = stat.size;
+      const range = request.headers.get("range");
+      const contentType = ext === ".wav" ? "audio/wav" : ext === ".mp3" ? "audio/mpeg" : ext === ".flac" ? "audio/flac" : "application/octet-stream";
+
+      if (range) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunksize = end - start + 1;
+        const stream = fs.createReadStream(resolved, { start, end });
+        return new Response(stream, {
+          status: 206,
+          headers: {
+            "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+            "Accept-Ranges": "bytes",
+            "Content-Length": String(chunksize),
+            "Content-Type": contentType
+          }
+        });
+      }
+
+      const stream = fs.createReadStream(resolved);
+      return new Response(stream, {
+        status: 200,
+        headers: {
+          "Content-Length": String(fileSize),
+          "Accept-Ranges": "bytes",
+          "Content-Type": contentType
+        }
       });
     } catch (err) {
       return new Response(err ? err.message : "Media streaming error", { status: 500 });

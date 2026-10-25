@@ -50,6 +50,18 @@ interface UpdateStatusEvent {
   message?: string;
 }
 
+interface StemEngineStatus {
+  detected: boolean;
+  ready: boolean;
+  hasGpu: boolean;
+  hasRoformer: boolean;
+  hasVocalsModel: boolean;
+  hasDemucs: boolean;
+  engineType: "stemkit_ai" | "dsp_fallback";
+  name?: string;
+  message?: string;
+}
+
 interface Window {
   ytDlpUi: {
     getSettings: () => Promise<AppSettings>;
@@ -60,6 +72,7 @@ interface Window {
     removeDownload: (id: string) => Promise<boolean>;
     openFolder: () => Promise<void>;
     listStemProjects: () => Promise<StemProject[]>;
+    getStemEngineStatus: () => Promise<StemEngineStatus>;
     getStemMediaUrl: (filePath: string) => string;
     readStemAudio: (filePath: string) => Promise<string | null>;
     chooseLocalFile: () => Promise<string | null>;

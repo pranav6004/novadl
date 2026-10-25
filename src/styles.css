@@ -51,6 +51,9 @@
   --stems-border: rgba(167, 139, 250, 0.35);
   --stems-badge-fill: rgba(167, 139, 250, 0.1);
   --stems-badge-border: rgba(167, 139, 250, 0.25);
+  --success-fill: rgba(52, 211, 153, 0.12);
+  --success-border: rgba(52, 211, 153, 0.35);
+  --success-text: #34d399;
 
   /* Semantic Alerts */
   --semantic-danger: #ef4444;
@@ -710,6 +713,17 @@ select:focus-visible,
   border-radius: 50%;
 }
 
+.stem-engine-active-chip {
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--stems-fill);
+  border: 1px solid var(--stems-border);
+  color: var(--stem-vocals);
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .stem-project-title {
   font-size: 18px;
   font-weight: 600;
@@ -1091,6 +1105,52 @@ select:focus-visible,
   color: var(--text-subtle);
   max-width: 440px;
   line-height: 1.5;
+}
+
+.stem-engine-card {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  color: var(--text-ink);
+  max-width: 500px;
+  text-align: left;
+}
+
+.stem-engine-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stem-engine-pill {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stem-engine-pill.ready {
+  background: var(--success-fill);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
+}
+
+.stem-engine-pill.needed {
+  background: var(--danger-fill);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+}
+
+.stem-engine-desc {
+  font-size: 12px !important;
+  color: var(--text-muted) !important;
+  line-height: 1.45;
+  margin: 0 !important;
 }
 
 .stem-recent-projects {
