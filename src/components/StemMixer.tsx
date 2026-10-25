@@ -1,5 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Play, Pause, RotateCcw, Volume2, Download, FolderOpen, Music, Mic, Disc3, Radio, Sparkles, Trash2, Sliders } from "lucide-react";
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Volume2,
+  Download,
+  FolderOpen,
+  Music,
+  Mic,
+  Disc3,
+  Radio,
+  Sparkles,
+  Trash2,
+  Sliders
+} from "lucide-react";
 import { MultiTrackStemEngine, StemId, StemTrackState, PresetType } from "../lib/audioEngine";
 
 interface StemMixerProps {
@@ -12,10 +26,10 @@ interface StemMixerProps {
 }
 
 const STEM_CONFIGS: Record<StemId, { label: string; color: string; icon: React.ReactNode }> = {
-  vocals: { label: "Vocals", color: "#a78bfa", icon: <Mic size={15} /> },
-  drums: { label: "Drums", color: "#f87171", icon: <Disc3 size={15} /> },
-  bass: { label: "Bass", color: "#38bdf8", icon: <Radio size={15} /> },
-  other: { label: "Other", color: "#34d399", icon: <Music size={15} /> }
+  vocals: { label: "Vocals", color: "var(--stem-vocals)", icon: <Mic size={14} aria-hidden="true" /> },
+  drums: { label: "Drums", color: "var(--stem-drums)", icon: <Disc3 size={14} aria-hidden="true" /> },
+  bass: { label: "Bass", color: "var(--stem-bass)", icon: <Radio size={14} aria-hidden="true" /> },
+  other: { label: "Other", color: "var(--stem-other)", icon: <Music size={14} aria-hidden="true" /> }
 };
 
 export const StemMixer: React.FC<StemMixerProps> = ({
@@ -237,11 +251,11 @@ export const StemMixer: React.FC<StemMixerProps> = ({
     return (
       <div className="stem-studio-empty">
         <div className="stem-empty-icon">
-          <Sparkles size={36} color="#38bdf8" />
+          <Sparkles size={28} aria-hidden="true" />
         </div>
         <h3>Stem Studio — Mini DAW</h3>
         <p>Isolate and mix musical stems (Vocals, Drums, Bass, Instruments) locally with zero latency.</p>
-        <div className="stem-empty-actions">
+        <div className="stem-empty-actions" style={{ marginTop: "8px" }}>
           <button
             className="primary-btn"
             onClick={async () => {
@@ -251,7 +265,8 @@ export const StemMixer: React.FC<StemMixerProps> = ({
               }
             }}
           >
-            <FolderOpen size={16} /> Load Local Audio / Video
+            <FolderOpen size={15} aria-hidden="true" />
+            <span>Load Local Audio or Video</span>
           </button>
         </div>
         {allProjects.length > 0 && (
@@ -274,13 +289,19 @@ export const StemMixer: React.FC<StemMixerProps> = ({
   const playheadPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="stem-studio-container">
+    <div className="stem-studio-container" aria-label="Audio Stem Mixer">
       {/* Studio Header */}
       <div className="stem-studio-header">
         <div className="stem-header-info">
           <div className="stem-live-indicator">
-            <span className="live-dot" style={{ backgroundColor: isPlaying ? "#34d399" : "#64748b" }} />
-            <span className="live-label">{isLoading ? "DECODING AUDIO..." : isPlaying ? "PLAYING" : "STUDIO READY"}</span>
+            <span
+              className="live-dot"
+              style={{ backgroundColor: isPlaying ? "var(--semantic-success)" : "var(--text-tertiary)" }}
+              aria-hidden="true"
+            />
+            <span className="live-label">
+              {isLoading ? "DECODING AUDIO…" : isPlaying ? "PLAYING" : "STUDIO READY"}
+            </span>
           </div>
           <h2 className="stem-project-title" title={project.title}>
             {project.title}
@@ -290,51 +311,86 @@ export const StemMixer: React.FC<StemMixerProps> = ({
         {/* Action Buttons */}
         <div className="stem-header-actions">
           {onOpenFolder && (
-            <button className="secondary-btn icon-btn" title="Open Folder in File Explorer" onClick={() => onOpenFolder(project.folder)}>
-              <FolderOpen size={16} />
+            <button
+              className="secondary-btn icon-btn"
+              title="Open Folder in File Explorer"
+              aria-label="Open Folder in File Explorer"
+              onClick={() => onOpenFolder(project.folder)}
+            >
+              <FolderOpen size={15} aria-hidden="true" />
             </button>
           )}
           {onExport && (
-            <button className="primary-btn stem-export-btn" title="Export Stems (WAV / MP3)" onClick={() => onExport(project)}>
-              <Download size={15} /> Export Stems
+            <button
+              className="primary-btn"
+              title="Export Stems (Lossless WAV)"
+              aria-label="Export Stems (Lossless WAV)"
+              onClick={() => onExport(project)}
+            >
+              <Download size={14} aria-hidden="true" />
+              <span>Export Stems</span>
             </button>
           )}
           {onDelete && (
-            <button className="secondary-btn icon-btn danger-hover" title="Delete Stem Project" onClick={() => onDelete(project)}>
-              <Trash2 size={15} />
+            <button
+              className="secondary-btn icon-btn danger-hover"
+              title="Delete Stem Project"
+              aria-label="Delete Stem Project"
+              onClick={() => onDelete(project)}
+            >
+              <Trash2 size={15} aria-hidden="true" />
             </button>
           )}
         </div>
       </div>
 
       {isLoading && (
-        <div className="stem-loading-overlay">
-          <div className="stem-spinner" />
-          <div className="stem-loading-text">Decoding audio stems into Web Audio buffers ({loadingProgress}%)...</div>
+        <div className="stem-loading-overlay" role="status" aria-live="polite">
+          <div className="stem-spinner" aria-hidden="true" />
+          <div className="stem-loading-text">
+            Decoding audio stems into Web Audio buffers ({loadingProgress}%)…
+          </div>
         </div>
       )}
 
       {/* Preset Filter Bar */}
-      <div className="stem-presets-bar">
-        <span className="presets-label"><Sliders size={13} /> Mix Presets:</span>
-        <button className={`preset-pill ${activePreset === "all" ? "active" : ""}`} onClick={() => applyPreset("all")}>
+      <div className="stem-presets-bar" role="group" aria-label="Mix presets">
+        <span className="presets-label">
+          <Sliders size={12} aria-hidden="true" /> Mix Presets:
+        </span>
+        <button
+          className={`preset-pill ${activePreset === "all" ? "active" : ""}`}
+          onClick={() => applyPreset("all")}
+        >
           All Stems
         </button>
-        <button className={`preset-pill ${activePreset === "karaoke" ? "active" : ""}`} onClick={() => applyPreset("karaoke")}>
+        <button
+          className={`preset-pill ${activePreset === "karaoke" ? "active" : ""}`}
+          onClick={() => applyPreset("karaoke")}
+        >
           Karaoke (No Vocals)
         </button>
-        <button className={`preset-pill ${activePreset === "acapella" ? "active" : ""}`} onClick={() => applyPreset("acapella")}>
+        <button
+          className={`preset-pill ${activePreset === "acapella" ? "active" : ""}`}
+          onClick={() => applyPreset("acapella")}
+        >
           Acapella (Vocals Solo)
         </button>
-        <button className={`preset-pill ${activePreset === "rhythm" ? "active" : ""}`} onClick={() => applyPreset("rhythm")}>
+        <button
+          className={`preset-pill ${activePreset === "rhythm" ? "active" : ""}`}
+          onClick={() => applyPreset("rhythm")}
+        >
           Rhythm Section (Drums + Bass)
         </button>
-        <button className={`preset-pill ${activePreset === "instrumental" ? "active" : ""}`} onClick={() => applyPreset("instrumental")}>
+        <button
+          className={`preset-pill ${activePreset === "instrumental" ? "active" : ""}`}
+          onClick={() => applyPreset("instrumental")}
+        >
           Instrumental
         </button>
       </div>
 
-      {/* Multi-Track Lanes */}
+      {/* Multi-Track Hardware Lanes */}
       <div className="stem-lanes-container" ref={waveformContainerRef}>
         {(["vocals", "drums", "bass", "other"] as StemId[]).map((id) => {
           const track = tracks[id];
@@ -343,10 +399,17 @@ export const StemMixer: React.FC<StemMixerProps> = ({
           const isDimmed = (hasAnySolo && !track.solo) || track.muted;
 
           return (
-            <div key={id} className={`stem-lane ${isDimmed ? "dimmed" : ""}`} style={{ borderColor: `${cfg.color}33` }}>
+            <div
+              key={id}
+              className={`stem-lane ${isDimmed ? "dimmed" : ""}`}
+              style={{ borderColor: `var(--hairline)` }}
+            >
               {/* Lane Controls (Left Strip) */}
               <div className="stem-track-controls">
-                <div className="stem-track-badge" style={{ backgroundColor: `${cfg.color}18`, color: cfg.color }}>
+                <div
+                  className="stem-track-badge"
+                  style={{ backgroundColor: `rgba(255, 255, 255, 0.05)`, color: cfg.color }}
+                >
                   {cfg.icon}
                   <span className="badge-name">{cfg.label}</span>
                 </div>
@@ -356,6 +419,7 @@ export const StemMixer: React.FC<StemMixerProps> = ({
                     className={`stem-btn mute-btn ${track.muted ? "active" : ""}`}
                     onClick={() => toggleMute(id)}
                     title={track.muted ? "Unmute Track (M)" : "Mute Track (M)"}
+                    aria-label={`${track.muted ? "Unmute" : "Mute"} ${cfg.label} track`}
                   >
                     M
                   </button>
@@ -363,12 +427,13 @@ export const StemMixer: React.FC<StemMixerProps> = ({
                     className={`stem-btn solo-btn ${track.solo ? "active" : ""}`}
                     onClick={() => toggleSolo(id)}
                     title={track.solo ? "Unsolo Track (S)" : "Solo Track (S)"}
+                    aria-label={`${track.solo ? "Unsolo" : "Solo"} ${cfg.label} track`}
                   >
                     S
                   </button>
                 </div>
 
-                {/* Tactical Faders */}
+                {/* Tactile Faders */}
                 <div className="stem-fader-group">
                   <div className="fader-row">
                     <span className="fader-label">VOL</span>
@@ -378,6 +443,10 @@ export const StemMixer: React.FC<StemMixerProps> = ({
                       max="1"
                       step="0.01"
                       value={track.volume}
+                      aria-label={`${cfg.label} track volume`}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(track.volume * 100)}
                       onChange={(e) => handleVolumeChange(id, parseFloat(e.target.value))}
                       className="stem-slider"
                       style={{ accentColor: cfg.color }}
@@ -393,25 +462,47 @@ export const StemMixer: React.FC<StemMixerProps> = ({
                       max="1"
                       step="0.05"
                       value={track.pan}
+                      aria-label={`${cfg.label} track stereo pan`}
+                      aria-valuemin={-100}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(track.pan * 100)}
                       onChange={(e) => handlePanChange(id, parseFloat(e.target.value))}
                       className="stem-slider pan-slider"
                     />
                     <span className="fader-val">
-                      {track.pan === 0 ? "C" : track.pan < 0 ? `L${Math.abs(Math.round(track.pan * 100))}` : `R${Math.round(track.pan * 100)}`}
+                      {track.pan === 0
+                        ? "C"
+                        : track.pan < 0
+                          ? `L${Math.abs(Math.round(track.pan * 100))}`
+                          : `R${Math.round(track.pan * 100)}`}
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Lane Waveform Visualizer (Right Body) */}
-              <div className="stem-waveform-lane" onClick={handleWaveformClick} title="Click to seek">
+              <div
+                className="stem-waveform-lane"
+                onClick={handleWaveformClick}
+                title="Click to seek"
+                role="slider"
+                tabIndex={0}
+                aria-label={`${cfg.label} timeline waveform`}
+                aria-valuemin={0}
+                aria-valuemax={Math.round(duration)}
+                aria-valuenow={Math.round(currentTime)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowLeft") handleSeek(Math.max(0, currentTime - 5));
+                  if (e.key === "ArrowRight") handleSeek(Math.min(duration, currentTime + 5));
+                }}
+              >
                 {/* Playhead line across lane */}
                 <div className="stem-playhead" style={{ left: `${playheadPercent}%` }} />
 
                 <div className="stem-bars-row">
                   {track.waveform.map((peak, idx) => {
                     const isPassed = duration > 0 && idx / track.waveform.length <= currentTime / duration;
-                    const barHeight = Math.max(12, Math.round(peak * 54));
+                    const barHeight = Math.max(10, Math.round(peak * 48));
 
                     return (
                       <div
@@ -419,8 +510,7 @@ export const StemMixer: React.FC<StemMixerProps> = ({
                         className={`waveform-bar ${isPassed ? "passed" : ""}`}
                         style={{
                           height: `${barHeight}px`,
-                          backgroundColor: isPassed ? cfg.color : `${cfg.color}44`,
-                          boxShadow: isPassed && isPlaying ? `0 0 6px ${cfg.color}99` : "none"
+                          backgroundColor: isPassed ? cfg.color : `rgba(255, 255, 255, 0.12)`
                         }}
                       />
                     );
@@ -435,11 +525,25 @@ export const StemMixer: React.FC<StemMixerProps> = ({
       {/* Master Transport Bar */}
       <div className="stem-transport-bar">
         <div className="transport-controls">
-          <button className="transport-btn icon-btn" onClick={() => handleSeek(0)} title="Return to Start">
-            <RotateCcw size={16} />
+          <button
+            className="transport-btn icon-btn"
+            onClick={() => handleSeek(0)}
+            title="Return to Start"
+            aria-label="Return to Start"
+          >
+            <RotateCcw size={15} aria-hidden="true" />
           </button>
-          <button className="transport-btn play-btn" onClick={togglePlay} title="Play / Pause (Space)">
-            {isPlaying ? <Pause size={20} /> : <Play size={20} style={{ marginLeft: "2px" }} />}
+          <button
+            className="transport-btn play-btn"
+            onClick={togglePlay}
+            title="Play / Pause (Space)"
+            aria-label={isPlaying ? "Pause playback" : "Start playback"}
+          >
+            {isPlaying ? (
+              <Pause size={18} aria-hidden="true" />
+            ) : (
+              <Play size={18} style={{ marginLeft: "2px" }} aria-hidden="true" />
+            )}
           </button>
         </div>
 
@@ -450,20 +554,36 @@ export const StemMixer: React.FC<StemMixerProps> = ({
         </div>
 
         {/* Master Scrub Bar */}
-        <div className="transport-scrub-track" onClick={handleWaveformClick}>
+        <div
+          className="transport-scrub-track"
+          onClick={handleWaveformClick}
+          role="slider"
+          tabIndex={0}
+          aria-label="Timeline scrubber"
+          aria-valuemin={0}
+          aria-valuemax={Math.round(duration)}
+          aria-valuenow={Math.round(currentTime)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft") handleSeek(Math.max(0, currentTime - 5));
+            if (e.key === "ArrowRight") handleSeek(Math.min(duration, currentTime + 5));
+          }}
+        >
           <div className="transport-scrub-fill" style={{ width: `${playheadPercent}%` }} />
-          <div className="transport-scrub-thumb" style={{ left: `${playheadPercent}%` }} />
         </div>
 
         {/* Master Volume */}
         <div className="transport-master-vol">
-          <Volume2 size={16} color="#94a3b8" />
+          <Volume2 size={15} color="var(--text-subtle)" aria-hidden="true" />
           <input
             type="range"
             min="0"
             max="1.2"
             step="0.02"
             value={masterVolume}
+            aria-label="Master Output Volume"
+            aria-valuemin={0}
+            aria-valuemax={120}
+            aria-valuenow={Math.round(masterVolume * 100)}
             onChange={(e) => setMasterVolume(parseFloat(e.target.value))}
             className="master-volume-slider"
             title={`Master Volume: ${Math.round(masterVolume * 100)}%`}
