@@ -1,4 +1,5 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const { spawn } = require("node:child_process");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
@@ -139,6 +140,71 @@ function getFfprobeCommand() {
   return "ffprobe";
 }
 
+let updaterListenersAttached = false;
+
+function setupAutoUpdater(mainWindow) {
+  if (updaterListenersAttached) return;
+  updaterListenersAttached = true;
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("checking-for-update", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("updater:status", { status: "checking" });
+    }
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("updater:status", {
+        status: "available",
+        version: info?.version,
+        releaseDate: info?.releaseDate
+      });
+    }
+  });
+
+  autoUpdater.on("update-not-available", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("updater:status", {
+        status: "up-to-date",
+        version: app.getVersion()
+      });
+    }
+  });
+
+  autoUpdater.on("download-progress", (progress) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("updater:status", {
+        status: "downloading",
+        percent: Math.round(progress.percent || 0),
+        bytesPerSecond: progress.bytesPerSecond || 0,
+        transferred: progress.transferred || 0,
+        total: progress.total || 0
+      });
+    }
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("updater:status", {
+        status: "downloaded",
+        version: info?.version
+      });
+    }
+  });
+
+  autoUpdater.on("error", (err) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("updater:status", {
+        status: "error",
+        message: err ? err.message : "Update check failed"
+      });
+    }
+  });
+}
+
 function createWindow() {
   const windowConfig = {
     width: 1180,
@@ -171,10 +237,20 @@ function createWindow() {
     event.preventDefault();
   });
 
+  setupAutoUpdater(mainWindow);
+
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
     mainWindow.loadFile(path.join(__dirname, "..", "dist", "index.html"));
+  }
+
+  if (app.isPackaged) {
+    setTimeout(() => {
+      autoUpdater.checkForUpdates().catch((err) => {
+        console.log("Background auto-update check:", err?.message);
+      });
+    }, 4000);
   }
 }
 
@@ -1199,6 +1275,27 @@ ipcMain.handle("stems:delete", async (_event, projectFolder) => {
     }
   }
   return false;
+});
+
+ipcMain.handle("updater:check", async () => {
+  if (!app.isPackaged) {
+    return { status: "dev", message: "Auto-update is available in installed application builds." };
+  }
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    return { success: true, updateInfo: result?.updateInfo };
+  } catch (err) {
+    return { success: false, error: err ? err.message : "Failed to check for updates" };
+  }
+});
+
+ipcMain.handle("updater:install", () => {
+  autoUpdater.quitAndInstall(false, true);
+  return true;
+});
+
+ipcMain.handle("updater:get-version", () => {
+  return app.getVersion();
 });
 
 app.whenReady().then(() => {

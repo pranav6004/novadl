@@ -15,6 +15,14 @@ contextBridge.exposeInMainWorld("ytDlpUi", {
   exportStems: (options) => ipcRenderer.invoke("stems:export", options),
   openStemFolder: (folderPath) => ipcRenderer.invoke("stems:open-folder", folderPath),
   deleteStemProject: (folderPath) => ipcRenderer.invoke("stems:delete", folderPath),
+  checkForUpdates: () => ipcRenderer.invoke("updater:check"),
+  installUpdate: () => ipcRenderer.invoke("updater:install"),
+  getAppVersion: () => ipcRenderer.invoke("updater:get-version"),
+  onUpdateEvent: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("updater:status", listener);
+    return () => ipcRenderer.removeListener("updater:status", listener);
+  },
   onDownloadEvent: (callback) => {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on("download:event", listener);

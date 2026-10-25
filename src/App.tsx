@@ -8,7 +8,11 @@ import {
   FolderOpen,
   Trash2,
   XCircle,
-  ClipboardPaste
+  ClipboardPaste,
+  RefreshCw,
+  ArrowUpCircle,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 import { Logo } from "./components/Logo";
 import { StemMixer } from "./components/StemMixer";
@@ -55,6 +59,11 @@ export function App() {
   const [stemProjects, setStemProjects] = useState<StemProject[]>([]);
   const [activeStemProject, setActiveStemProject] = useState<StemProject | null>(null);
 
+  // Auto-updater state
+  const [appVersion, setAppVersion] = useState<string>("0.2.1");
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatusEvent>({ status: "up-to-date" });
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+
   const activeCount = useMemo(
     () => downloads.filter((item) => item.status === "running" || item.status === "queued").length,
     [downloads]
@@ -63,9 +72,12 @@ export function App() {
   // Initial load
   useEffect(() => {
     window.ytDlpUi.getSettings().then(setSettings);
+    window.ytDlpUi.getAppVersion().then((v) => {
+      if (v) setAppVersion(v);
+    }).catch(() => {});
     refreshStemProjects();
 
-    return window.ytDlpUi.onDownloadEvent((event) => {
+    const unsubDownload = window.ytDlpUi.onDownloadEvent((event) => {
       setDownloads((items) =>
         items.map((item) => {
           if (item.id !== event.id) {
@@ -127,6 +139,15 @@ export function App() {
         })
       );
     });
+
+    const unsubUpdate = window.ytDlpUi.onUpdateEvent((event) => {
+      setUpdateStatus(event);
+    });
+
+    return () => {
+      unsubDownload();
+      if (unsubUpdate) unsubUpdate();
+    };
   }, []);
 
   const refreshStemProjects = async () => {
@@ -228,6 +249,25 @@ export function App() {
     }
   };
 
+  const handleCheckForUpdates = async () => {
+    setIsCheckingUpdate(true);
+    try {
+      const res = await window.ytDlpUi.checkForUpdates();
+      if (res?.status === "dev") {
+        setUpdateStatus({ status: "dev", message: res.message });
+      } else if (!res?.success && res?.error) {
+        setUpdateStatus({ status: "error", message: res.error });
+      }
+    } catch (err: unknown) {
+      setUpdateStatus({
+        status: "error",
+        message: err instanceof Error ? err.message : "Update check failed"
+      });
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
+
   return (
     <div className="app-layout">
       {/* Chrome Navigation Header */}
@@ -268,6 +308,24 @@ export function App() {
         </div>
 
         <div className="header-right">
+          {updateStatus.status === "downloading" && (
+            <div className="badge-update-downloading" aria-live="polite">
+              <span className="pulse-dot" aria-hidden="true" />
+              <span>
+                Updating v{updateStatus.version || ""}&nbsp;({updateStatus.percent || 0}%)
+              </span>
+            </div>
+          )}
+          {updateStatus.status === "downloaded" && (
+            <button
+              className="btn-update-restart"
+              onClick={() => window.ytDlpUi.installUpdate()}
+              title="Restart NovaDL to install downloaded update"
+            >
+              <ArrowUpCircle size={14} aria-hidden="true" />
+              <span>Restart to install v{updateStatus.version}</span>
+            </button>
+          )}
           {activeCount > 0 && (
             <div className="badge-active-tasks" aria-live="polite">
               <span className="pulse-dot" aria-hidden="true" />
@@ -570,6 +628,83 @@ export function App() {
                 <p className="settings-hint" style={{ marginTop: "4px" }}>
                   NovaDL includes offline 4-track stem separation (Vocals, Drums, Bass, Instruments) with automated waveform generation, mini-DAW mixer playback, pan controls, and lossless export.
                 </p>
+              </div>
+
+              {/* In-App Auto Updates & Version */}
+              <div className="settings-group settings-update-box">
+                <div className="settings-update-header">
+                  <div>
+                    <label className="settings-label">Application Updates & Version</label>
+                    <div className="settings-update-version">NovaDL v{appVersion}</div>
+                  </div>
+                  <div className="settings-update-actions">
+                    {updateStatus.status === "downloaded" ? (
+                      <button
+                        className="btn-update-restart"
+                        onClick={() => window.ytDlpUi.installUpdate()}
+                      >
+                        <ArrowUpCircle size={14} aria-hidden="true" />
+                        <span>Restart & Install v{updateStatus.version}</span>
+                      </button>
+                    ) : (
+                      <button
+                        className="secondary-btn"
+                        disabled={isCheckingUpdate || updateStatus.status === "downloading"}
+                        onClick={handleCheckForUpdates}
+                      >
+                        <RefreshCw size={13} className={isCheckingUpdate ? "spin" : ""} aria-hidden="true" />
+                        <span>{isCheckingUpdate ? "Checking…" : "Check for Updates"}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {updateStatus.status === "downloading" && (
+                  <div className="settings-update-progress-container">
+                    <div className="settings-update-progress-label">
+                      <span>Downloading v{updateStatus.version}…</span>
+                      <span>{updateStatus.percent || 0}%</span>
+                    </div>
+                    <div className="settings-update-progress-track">
+                      <div
+                        className="settings-update-progress-fill"
+                        style={{ width: `${Math.min(100, Math.max(0, updateStatus.percent || 0))}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {updateStatus.status === "available" && (
+                  <p className="settings-hint" style={{ color: "var(--accent-primary)" }}>
+                    Update v{updateStatus.version} found on GitHub Releases. Downloading in background…
+                  </p>
+                )}
+
+                {updateStatus.status === "downloaded" && (
+                  <p className="settings-hint" style={{ color: "var(--semantic-success)" }}>
+                    Update v{updateStatus.version} is ready to install. Restart now to complete the update.
+                  </p>
+                )}
+
+                {updateStatus.status === "up-to-date" && (
+                  <p className="settings-hint" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <CheckCircle2 size={13} color="var(--semantic-success)" aria-hidden="true" />
+                    <span>NovaDL is up to date (running v{appVersion}).</span>
+                  </p>
+                )}
+
+                {updateStatus.status === "dev" && (
+                  <p className="settings-hint">
+                    {updateStatus.message || "Auto-update is enabled for installed application builds via GitHub Releases."}
+                  </p>
+                )}
+
+                {updateStatus.status === "error" && (
+                  <p className="settings-hint" style={{ color: "var(--semantic-danger)", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <AlertCircle size={13} aria-hidden="true" />
+                    <span>{updateStatus.message || "Failed to check for updates."}</span>
+                  </p>
+                )}
               </div>
             </div>
           </div>

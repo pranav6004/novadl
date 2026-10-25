@@ -20,6 +20,13 @@
     "directories": {
       "output": "release"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "pranav6004",
+        "repo": "novadl"
+      }
+    ],
     "files": [
       "dist/**/*",
       "electron/**/*",
@@ -29,12 +36,17 @@
       {
         "from": "bin",
         "to": "bin",
-        "filter": ["*.exe"]
+        "filter": [
+          "*.exe"
+        ]
       }
     ],
     "win": {
       "icon": "public/icon.png",
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "nsis": {
       "artifactName": "${productName}-Setup-${version}.${ext}"
@@ -44,6 +56,7 @@
     }
   },
   "dependencies": {
+    "electron-updater": "^6.8.11",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
