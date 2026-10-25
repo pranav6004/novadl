@@ -221,10 +221,17 @@ function createWindow() {
     }
   };
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    windowConfig.icon = path.join(__dirname, "..", "public", "icon.png");
-  } else if (process.platform !== "win32") {
-    windowConfig.icon = path.join(__dirname, "..", "dist", "icon.png");
+  const iconCandidates = [
+    path.join(__dirname, "..", "public", "icon.ico"),
+    path.join(__dirname, "..", "dist", "icon.ico"),
+    path.join(__dirname, "..", "public", "icon.png"),
+    path.join(__dirname, "..", "dist", "icon.png")
+  ];
+  for (const candidate of iconCandidates) {
+    if (fs.existsSync(candidate)) {
+      windowConfig.icon = candidate;
+      break;
+    }
   }
 
   const mainWindow = new BrowserWindow(windowConfig);
